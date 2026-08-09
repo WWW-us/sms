@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Profile - Shop Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --primary: #1B2A4A;
+            --primary-light: #2C3E6B;
+            --primary-dark: #0D1A2D;
+            --secondary: #4A90D9;
+            --accent: #F5A623;
+            --accent-hover: #D48E1A;
+            --success: #27AE60;
+            --danger: #E74C3C;
+            --danger-hover: #C0392B;
+            --bg: #F0F4F8;
+            --card: #FFFFFF;
+            --text: #2C3E50;
+            --text-light: #7F8C8D;
+            --border: #E1E8ED;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+            --radius-sm: 6px;
+            --transition: 0.25s ease;
+            --sidebar-width: 240px;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --input-bg: #fff;
+            --card-hover: rgba(74, 144, 217, 0.04);
+            --modal-bg: rgba(0, 0, 0, 0.5);
+            --toast-bg: var(--primary);
+            --toast-text: #fff;
+            --border-light: rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] {
+            --bg: #121826;
+            --card: #1E2638;
+            --text: #E8EDF5;
+            --text-light: #9AA8C7;
+            --border: #2D3748;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --input-bg: #252F44;
+            --card-hover: rgba(74, 144, 217, 0.08);
+            --modal-bg: rgba(0, 0, 0, 0.7);
+            --toast-bg: #2C3E6B;
+            --toast-text: #fff;
+            --border-light: rgba(255, 255, 255, 0.06);
+            --primary: #5A7FC0;
+            --primary-light: #6F92D0;
+            --primary-dark: #3A5A8A;
+        }
+
+        [data-theme="dark"] .sidebar {
+            background: #0E1525;
+        }
+        [data-theme="dark"] .sidebar-brand {
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+        }
+        [data-theme="dark"] .sidebar-footer {
+            border-top-color: rgba(255, 255, 255, 0.06);
+        }
+        [data-theme="dark"] .topbar {
+            background: var(--card);
+            border-bottom-color: var(--border);
+        }
+        [data-theme="dark"] input,
+        [data-theme="dark"] select {
+            background: var(--input-bg);
+            color: var(--text);
+            border-color: var(--border);
+        }
+        [data-theme="dark"] input:focus,
+        [data-theme="dark"] select:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.25);
+        }
+        [data-theme="dark"] .card {
+            border-color: var(--border);
+        }
+        [data-theme="dark"] .sidebar-toggle {
+            background: var(--primary);
+            color: #fff;
+        }
+        [data-theme="dark"] .sidebar-toggle:hover {
+            background: var(--primary-light);
+        }
+        [data-theme="dark"] .toast-msg {
+            background: var(--toast-bg);
+            color: var(--toast-text);
+        }
+        [data-theme="dark"] .card-header h3 {
+            color: var(--text);
+        }
+        [data-theme="dark"] .card-header h3 i {
+            color: var(--accent);
+        }
+        [data-theme="dark"] .page-title h2 {
+            color: var(--text);
+        }
+        [data-theme="dark"] .page-title h2 i {
+            color: var(--accent);
+        }
+        [data-theme="dark"] .welcome-text {
+            color: var(--text);
+        }
+        [data-theme="dark"] .welcome-text span {
+            color: var(--secondary);
+        }
+        [data-theme="dark"] .topbar .topbar-actions .lang-toggle {
+            background: var(--bg);
+            border-color: var(--border);
+        }
+        [data-theme="dark"] .topbar .topbar-actions .lang-toggle button {
+            color: var(--text-light);
+        }
+        [data-theme="dark"] .topbar .topbar-actions .lang-toggle button.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        [data-theme="dark"] .topbar .topbar-actions .lang-toggle button:hover:not(.active) {
+            color: var(--text);
+        }
+        [data-theme="dark"] .sidebar-nav a {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        [data-theme="dark"] .sidebar-nav a:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+        [data-theme="dark"] .sidebar-nav a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        [data-theme="dark"] .empty-state {
+            color: var(--text-light);
+        }
+        [data-theme="dark"] .empty-state h4 {
+            color: var(--text);
+        }
+        [data-theme="dark"] .text-muted {
+            color: var(--text-light);
+        }
+
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            transition: background 0.3s, color 0.3s;
+        }
+        a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+            border: none;
+            background: none;
+            outline: none;
+        }
+        input,
+        select {
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            background: var(--input-bg);
+            width: 100%;
+            transition: var(--transition);
+            color: var(--text);
+        }
+        input:focus,
+        select:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2);
+        }
+        input::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        select {
+            appearance: auto;
+            cursor: pointer;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--primary);
+            color: #fff;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+            z-index: 100;
+            transition: background 0.3s;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-brand {
+            padding: 20px 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .sidebar-brand i {
+            font-size: 26px;
+            color: var(--accent);
+        }
+        .sidebar-brand span {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .sidebar-brand small {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.7;
+            display: block;
+            margin-top: -2px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 11px 16px;
+            border-radius: var(--radius-sm);
+            color: rgba(255, 255, 255, 0.7);
+            transition: var(--transition);
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+        .sidebar-nav a i {
+            width: 20px;
+            font-size: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .sidebar-nav a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+        .sidebar-nav a.active {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-nav a.active i {
+            color: var(--accent);
+        }
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .sidebar-footer .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .sidebar-footer .user-card .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .sidebar-footer .user-card .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sidebar-footer .user-card .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .sidebar-footer .user-card .user-info .name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-footer .user-card .user-info .role {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+        .sidebar-footer .logout-btn {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 18px;
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .sidebar-footer .logout-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ===== SIDEBAR TOGGLE ===== */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 200;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .sidebar-toggle:hover {
+            background: var(--primary-light);
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 99;
+            backdrop-filter: blur(2px);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        .topbar {
+            background: var(--card);
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .topbar .page-title h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            transition: color 0.3s;
+        }
+        .topbar .page-title h2 i {
+            color: var(--accent);
+            margin-right: 8px;
+        }
+        .topbar .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .topbar .topbar-actions .lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg);
+            padding: 4px 6px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .topbar .topbar-actions .lang-toggle button {
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 12px;
+            transition: var(--transition);
+            border: none;
+            background: none;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+        .topbar .topbar-actions .lang-toggle button.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(27, 42, 74, 0.2);
+        }
+        .topbar .topbar-actions .lang-toggle button:hover:not(.active) {
+            color: var(--primary);
+        }
+        .topbar .topbar-actions .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg);
+            padding: 4px 12px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.3s, border-color 0.3s;
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        .topbar .topbar-actions .theme-toggle:hover {
+            border-color: var(--secondary);
+        }
+        .topbar .topbar-actions .theme-toggle i {
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        .topbar .topbar-actions .welcome-text {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .topbar .topbar-actions .welcome-text span {
+            color: var(--primary);
+            font-weight: 700;
+            transition: color 0.3s;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 24px 28px 40px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-light);
+            transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .card-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--primary);
+            transition: color 0.3s;
+        }
+        .card-header h3 i {
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 13px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(27, 42, 74, 0.2);
+        }
+        .btn-secondary {
+            background: var(--secondary);
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: #3A7BC8;
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--border);
+        }
+        .btn-outline:hover {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        /* ===== FORMS ===== */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-row .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-row .form-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--primary);
+            transition: color 0.3s;
+        }
+        .form-row .form-group label .optional {
+            font-weight: 400;
+            color: var(--text-light);
+            font-size: 11px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        /* ===== PROFILE PICTURE ===== */
+        .profile-pic-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .profile-pic-section .pic-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--text-light);
+            flex-shrink: 0;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .profile-pic-section .pic-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-pic-section .pic-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .profile-pic-section .pic-actions .btn {
+            font-size: 12px;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+        .empty-state i {
+            font-size: 48px;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+        .empty-state h4 {
+            font-size: 18px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                transform: translateX(-100%);
+                height: 100vh;
+                width: 280px;
+                z-index: 150;
+                box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2);
+                border-radius: 0;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .sidebar-toggle {
+                display: flex;
+            }
+            .topbar {
+                padding: 12px 16px 12px 60px;
+            }
+            .content-area {
+                padding: 16px;
+            }
+            .card {
+                padding: 18px 16px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .profile-pic-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .profile-pic-section .pic-actions {
+                align-items: center;
+            }
+        }
+        @media (max-width: 480px) {
+            .topbar {
+                padding: 10px 12px 10px 52px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .topbar .topbar-actions {
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+            .topbar .page-title h2 {
+                font-size: 15px;
+            }
+            .card {
+                padding: 14px 12px;
+            }
+            .content-area {
+                padding: 10px;
+            }
+            .btn {
+                padding: 7px 14px;
+                font-size: 12px;
+            }
+            .form-actions {
+                flex-direction: column;
+            }
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .topbar .topbar-actions .theme-toggle {
+                padding: 4px 10px;
+                font-size: 12px;
+            }
+            .topbar .topbar-actions .theme-toggle i {
+                font-size: 14px;
+            }
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+        .lang-urdu {
+            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
+        }
+        .lang-urdu .sidebar-nav a {
+            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
+        }
+        .lang-urdu .topbar .page-title h2 {
+            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
+        }
+        .lang-urdu .card-header h3 {
+            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
+        }
+        .lang-urdu .btn {
+            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
+        }
+        .lang-urdu input,
+        .lang-urdu select,
+        .lang-urdu label {
+            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
+        }
+        .lang-urdu .sidebar-brand span {
+            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 14px 28px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 500;
+            max-width: 90%;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s, color 0.3s;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-store-alt"></i>
+            <div>
+                <span>SMS</span>
+                <small>Shop Management</small>
+            </div>
+        </div>
+        <nav class="sidebar-nav" id="sidebarNav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> <span data-key="nav_dashboard">Dashboard</span></a>
+            <a href="items.html"><i class="fas fa-boxes"></i> <span data-key="nav_items">Items</span></a>
+            <a href="company.html"><i class="fas fa-building"></i> <span data-key="nav_company">Company</span></a>
+            <a href="admins.html" id="navAdmins"><i class="fas fa-users-cog"></i> <span data-key="nav_admins">Admins</span></a>
+            <a href="profile.html" class="active"><i class="fas fa-user"></i> <span data-key="nav_profile">Profile</span></a>
+            <a href="recent-activity.html"><i class="fas fa-clock"></i> <span data-key="nav_activity">Recent Activity</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="avatar" id="sidebarAvatar">H</div>
+                <div class="user-info">
+                    <div class="name" id="sidebarName">Head</div>
+                    <div class="role" id="sidebarRole">Head Admin</div>
+                </div>
+                <button class="logout-btn" id="logoutBtn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+        <header class="topbar">
+            <div class="page-title">
+                <h2 id="pageTitle"><i class="fas fa-user"></i> <span data-key="title_profile">Profile</span></h2>
+            </div>
+            <div class="topbar-actions">
+                <div class="theme-toggle" id="themeToggle" title="Toggle Dark/Light mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                    <span id="themeLabel">Dark</span>
+                </div>
+                <div class="lang-toggle">
+                    <button class="active" data-lang="en">EN</button>
+                    <button data-lang="ur">UR</button>
+                </div>
+                <div class="welcome-text">Welcome, <span id="welcomeName">Head</span></div>
+            </div>
+        </header>
+
+        <div class="content-area">
+
+            <!-- Edit Profile -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-edit"></i> <span data-key="edit_profile">Edit Profile</span></h3>
+                </div>
+                <form id="profileForm">
+                    <!-- Profile Picture -->
+                    <div class="profile-pic-section">
+                        <div class="pic-preview" id="profilePicPreview">
+                            <i class="fas fa-user-circle" id="picPlaceholder"></i>
+                            <img id="profilePicImg" style="display:none;" alt="Profile" />
+                        </div>
+                        <div class="pic-actions">
+                            <button type="button" class="btn btn-secondary btn-sm" id="uploadPicBtn"><i class="fas fa-upload"></i> <span data-key="upload_photo">Upload Photo</span></button>
+                            <button type="button" class="btn btn-outline btn-sm" id="removePicBtn"><i class="fas fa-trash"></i> <span data-key="remove_photo">Remove</span></button>
+                            <input type="file" id="picFileInput" accept="image/*" style="display:none;" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profileName"><span data-key="admin_name">Name</span> *</label>
+                            <input type="text" id="profileName" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="profileUsername"><span data-key="admin_username">Username</span> *</label>
+                            <input type="text" id="profileUsername" required />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="profileEmail"><span data-key="admin_email">Email</span> <span class="optional">(optional)</span></label>
+                            <input type="email" id="profileEmail" />
+                        </div>
+                        <div class="form-group">
+                            <label for="profilePassword"><span data-key="new_password">New Password</span> <span class="optional">(leave blank to keep current)</span></label>
+                            <input type="password" id="profilePassword" placeholder="New password" />
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <span data-key="update_profile">Update Profile</span></button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Profile Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> <span data-key="profile_info">Profile Information</span></h3>
+                </div>
+                <div id="profileInfo">
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <h4>Loading profile...</h4>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
+    </script>
+
+    <script>
+        // ============================================================
+        //  FIREBASE CONFIG - REPLACE WITH YOUR OWN
+        // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
+    authDomain: "shop-m-system.firebaseapp.com",
+    databaseURL: "https://shop-m-system-default-rtdb.firebaseio.com",
+    projectId: "shop-m-system",
+    storageBucket: "shop-m-system.firebasestorage.app",
+    messagingSenderId: "1037445605212",
+    appId: "1:1037445605212:web:b0420a71036fb525f30399",
+    measurementId: "G-X0203129L3"
+  };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ============================================================
+        //  CHECK LOGIN
+        // ============================================================
+        if (localStorage.getItem('sms_logged_in') !== 'true') {
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        //  HELPERS
+        // ============================================================
+        function generateId() {
+            return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit',
+                minute: '2-digit' });
+        }
+
+        // ============================================================
+        //  FIREBASE DATA HELPERS
+        // ============================================================
+        async function getData() {
+            try {
+                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
+                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                const doc = await docRef.get();
+                if (doc.exists) {
+                    return doc.data();
+                }
+                return { items: [], companies: [], activities: [], admins: [] };
+            } catch (error) {
+                console.error('Error getting data:', error);
+                return { items: [], companies: [], activities: [], admins: [] };
+            }
+        }
+
+        async function saveData(data) {
+            try {
+                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
+                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                await docRef.set(data, { merge: true });
+                return true;
+            } catch (error) {
+                console.error('Error saving data:', error);
+                return false;
+            }
+        }
+
+        async function addActivity(data, action, details) {
+            const adminName = localStorage.getItem('sms_admin_name') || 'Head';
+            const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+            if (!data.activities) data.activities = [];
+            data.activities.unshift({
+                id: generateId(),
+                action: action,
+                adminId: adminId,
+                adminName: adminName,
+                details: details,
+                timestamp: new Date().toISOString()
+            });
+            if (data.activities.length > 500) data.activities = data.activities.slice(0, 500);
+            await saveData(data);
+        }
+
+        // ============================================================
+        //  TRANSLATIONS
+        // ============================================================
+        const TRANSLATIONS = {
+            en: {
+                nav_dashboard: 'Dashboard',
+                nav_items: 'Items',
+                nav_company: 'Company',
+                nav_admins: 'Admins',
+                nav_profile: 'Profile',
+                nav_activity: 'Recent Activity',
+                title_profile: 'Profile',
+                edit_profile: 'Edit Profile',
+                admin_name: 'Name',
+                admin_username: 'Username',
+                admin_email: 'Email',
+                new_password: 'New Password',
+                update_profile: 'Update Profile',
+                profile_info: 'Profile Information',
+                role: 'Role',
+                permissions: 'Permissions',
+                all_permissions: 'All',
+                specific_permissions: 'Specific',
+                created_at: 'Created',
+                role_head: 'Head Admin',
+                role_sub: 'Sub Admin',
+                dark_mode: 'Dark',
+                light_mode: 'Light',
+                upload_photo: 'Upload Photo',
+                remove_photo: 'Remove',
+                profile_updated: 'Profile updated successfully!',
+                pic_updated: 'Profile picture updated!',
+                pic_removed: 'Profile picture removed.',
+            },
+            ur: {
+                nav_dashboard: 'ڈیش بورڈ',
+                nav_items: 'اشیا',
+                nav_company: 'کمپنی',
+                nav_admins: 'منتظمین',
+                nav_profile: 'پروفائل',
+                nav_activity: 'حالیہ سرگرمیاں',
+                title_profile: 'پروفائل',
+                edit_profile: 'پروفائل ترمیم کریں',
+                admin_name: 'نام',
+                admin_username: 'صارف نام',
+                admin_email: 'ای میل',
+                new_password: 'نیا پاس ورڈ',
+                update_profile: 'پروفائل اپ ڈیٹ کریں',
+                profile_info: 'پروفائل معلومات',
+                role: 'کردار',
+                permissions: 'اجازتیں',
+                all_permissions: 'تمام',
+                specific_permissions: 'مخصوص',
+                created_at: 'تخلیق',
+                role_head: 'ہیڈ منتظم',
+                role_sub: 'ذیلی منتظم',
+                dark_mode: 'تاریک',
+                light_mode: 'روشن',
+                upload_photo: 'تصویر اپ لوڈ کریں',
+                remove_photo: 'ہٹائیں',
+                profile_updated: 'پروفائل کامیابی سے اپ ڈیٹ ہو گیا!',
+                pic_updated: 'پروفائل تصویر اپ ڈیٹ ہو گئی!',
+                pic_removed: 'پروفائل تصویر ہٹا دی گئی۔',
+            }
+        };
+
+        let currentLang = 'en';
+
+        function t(key) {
+            return TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key] ? TRANSLATIONS[currentLang][key] : key;
+        }
+
+        // ============================================================
+        //  RENDER PROFILE
+        // ============================================================
+        async function renderProfile() {
+            try {
+                const data = await getData();
+                const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+                let admin = (data.admins || []).find(a => a.id === adminId);
+
+                // If admin not found, try to find by username or create default
+                if (!admin) {
+                    const adminName = localStorage.getItem('sms_admin_name') || 'Head';
+                    admin = {
+                        id: adminId,
+                        name: adminName,
+                        username: localStorage.getItem('sms_admin_username') || 'sms.user',
+                        password: '12341122',
+                        email: '',
+                        role: 'head',
+                        permissions: { all: true, functions: [] },
+                        createdAt: new Date().toISOString(),
+                        profilePic: ''
+                    };
+                    if (!data.admins) data.admins = [];
+                    data.admins.push(admin);
+                    await saveData(data);
+                }
+
+                // Update form fields
+                document.getElementById('profileName').value = admin.name || '';
+                document.getElementById('profileUsername').value = admin.username || '';
+                document.getElementById('profileEmail').value = admin.email || '';
+                document.getElementById('profilePassword').value = '';
+
+                // Profile picture
+                const preview = document.getElementById('profilePicPreview');
+                const img = document.getElementById('profilePicImg');
+                const placeholder = document.getElementById('picPlaceholder');
+                if (admin.profilePic) {
+                    img.src = admin.profilePic;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                } else {
+                    img.style.display = 'none';
+                    placeholder.style.display = 'block';
+                }
+
+                // Profile info
+                const info = document.getElementById('profileInfo');
+                const roleLabel = admin.role === 'head' ? t('role_head') : t('role_sub');
+                const permLabel = admin.permissions && admin.permissions.all ? t('all_permissions') : t(
+                'specific_permissions');
+                info.innerHTML = `
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:500px;">
+                        <div><strong>${t('admin_name')}</strong><br>${escapeHtml(admin.name)}</div>
+                        <div><strong>${t('admin_username')}</strong><br>${escapeHtml(admin.username)}</div>
+                        <div><strong>${t('admin_email')}</strong><br>${escapeHtml(admin.email) || '—'}</div>
+                        <div><strong>${t('role')}</strong><br>${roleLabel}</div>
+                        <div><strong>${t('permissions')}</strong><br>${permLabel}</div>
+                        <div><strong>${t('created_at')}</strong><br>${formatDate(admin.createdAt)}</div>
+                    </div>
+                `;
+
+                // Update sidebar
+                updateSidebar(admin);
+
+            } catch (error) {
+                console.error('Error rendering profile:', error);
+                document.getElementById('profileInfo').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h4>Error loading profile</h4>
+                        <p>Please check your connection.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================================
+        //  UPDATE SIDEBAR
+        // ============================================================
+        function updateSidebar(admin) {
+            const avatar = document.getElementById('sidebarAvatar');
+            if (admin && admin.profilePic) {
+                avatar.innerHTML = `<img src="${admin.profilePic}" alt="${admin.name}" />`;
+            } else if (admin) {
+                avatar.textContent = admin.name.charAt(0).toUpperCase();
+            }
+            if (admin) {
+                document.getElementById('sidebarName').textContent = admin.name;
+                document.getElementById('welcomeName').textContent = admin.name;
+            }
+        }
+
+        // ============================================================
+        //  PROFILE UPDATE
+        // ============================================================
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                const data = await getData();
+                const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+                const admin = (data.admins || []).find(a => a.id === adminId);
+
+                if (!admin) {
+                    alert('Admin not found.');
+                    return;
+                }
+
+                const name = document.getElementById('profileName').value.trim();
+                const username = document.getElementById('profileUsername').value.trim();
+                const email = document.getElementById('profileEmail').value.trim();
+                const password = document.getElementById('profilePassword').value;
+
+                if (!name) { alert('Name is required.'); return; }
+                if (!username) { alert('Username is required.'); return; }
+                if (password && password.length < 4) { alert('Password must be at least 4 characters.'); return; }
+
+                // Check duplicate username
+                const duplicate = (data.admins || []).find(a => a.username === username && a.id !== admin.id);
+                if (duplicate) {
+                    alert('Username already exists. Please choose another.');
+                    return;
+                }
+
+                admin.name = name;
+                admin.username = username;
+                admin.email = email;
+                if (password) admin.password = password;
+
+                await saveData(data);
+
+                // Update local storage
+                localStorage.setItem('sms_admin_name', name);
+                localStorage.setItem('sms_admin_username', username);
+
+                await renderProfile();
+                showToast(t('profile_updated'));
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Error updating profile: ' + error.message);
+            }
+        });
+
+        // ============================================================
+        //  PROFILE PICTURE
+        // ============================================================
+        document.getElementById('uploadPicBtn').addEventListener('click', function() {
+            document.getElementById('picFileInput').click();
+        });
+
+        document.getElementById('picFileInput').addEventListener('change', async function(e) {
+            if (this.files && this.files[0]) {
+                await handleProfilePicUpload(this.files[0]);
+            }
+            this.value = '';
+        });
+
+        document.getElementById('removePicBtn').addEventListener('click', async function() {
+            try {
+                const data = await getData();
+                const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+                const admin = (data.admins || []).find(a => a.id === adminId);
+                if (!admin) return;
+                admin.profilePic = '';
+                await saveData(data);
+                await renderProfile();
+                showToast(t('pic_removed'));
+            } catch (error) {
+                console.error('Error removing profile picture:', error);
+                alert('Error removing profile picture.');
+            }
+        });
+
+        async function handleProfilePicUpload(file) {
+            if (!file) return;
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const data = await getData();
+                    const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+                    const admin = (data.admins || []).find(a => a.id === adminId);
+                    if (!admin) return;
+                    admin.profilePic = e.target.result;
+                    await saveData(data);
+                    await renderProfile();
+                    showToast(t('pic_updated'));
+                };
+                reader.readAsDataURL(file);
+            } catch (error) {
+                console.error('Error uploading profile picture:', error);
+                alert('Error uploading profile picture.');
+            }
+        }
+
+        // ============================================================
+        //  THEME
+        // ============================================================
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+                document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+                document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
+            }
+            localStorage.setItem('sms_theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = localStorage.getItem('sms_theme') || 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+        // ============================================================
+        //  LANGUAGE
+        // ============================================================
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.body.classList.toggle('lang-urdu', lang === 'ur');
+            document.querySelectorAll('.lang-toggle button').forEach(b => {
+                b.classList.toggle('active', b.dataset.lang === lang);
+            });
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            const keys = ['nav_dashboard', 'nav_items', 'nav_company', 'nav_admins', 'nav_profile', 'nav_activity'];
+            keys.forEach(k => {
+                const el = document.querySelector(`[data-key="${k}"]`);
+                if (el) el.textContent = t(k);
+            });
+            document.querySelector('[data-key="title_profile"]').textContent = t('title_profile');
+            document.querySelector('[data-key="edit_profile"]').textContent = t('edit_profile');
+            document.querySelector('[data-key="admin_name"]').textContent = t('admin_name');
+            document.querySelector('[data-key="admin_username"]').textContent = t('admin_username');
+            document.querySelector('[data-key="admin_email"]').textContent = t('admin_email');
+            document.querySelector('[data-key="new_password"]').textContent = t('new_password');
+            document.querySelector('[data-key="update_profile"]').textContent = t('update_profile');
+            document.querySelector('[data-key="profile_info"]').textContent = t('profile_info');
+            document.querySelector('[data-key="upload_photo"]').textContent = t('upload_photo');
+            document.querySelector('[data-key="remove_photo"]').textContent = t('remove_photo');
+
+            const theme = localStorage.getItem('sms_theme') || 'light';
+            if (theme === 'dark') {
+                document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
+            } else {
+                document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
+            }
+
+            renderProfile();
+        }
+
+        document.querySelectorAll('.lang-toggle button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                setLanguage(this.dataset.lang);
+            });
+        });
+
+        // ============================================================
+        //  TOAST
+        // ============================================================
+        function showToast(msg) {
+            const existing = document.querySelector('.toast-msg');
+            if (existing) existing.remove();
+            const div = document.createElement('div');
+            div.className = 'toast-msg';
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transition = 'opacity 0.4s';
+                setTimeout(() => div.remove(), 400);
+            }, 3000);
+        }
+
+        // ============================================================
+        //  SIDEBAR
+        // ============================================================
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
+        document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) closeSidebar();
+        });
+
+        // ============================================================
+        //  LOGOUT
+        // ============================================================
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            try {
+                await auth.signOut();
+            } catch (e) {
+                console.warn('Sign out error:', e);
+            }
+            localStorage.removeItem('sms_logged_in');
+            localStorage.removeItem('sms_admin_name');
+            localStorage.removeItem('sms_admin_role');
+            localStorage.removeItem('sms_admin_id');
+            localStorage.removeItem('sms_admin_permissions');
+            localStorage.removeItem('sms_firebase_uid');
+            window.location.href = 'index.html';
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        const savedTheme = localStorage.getItem('sms_theme') || 'light';
+        applyTheme(savedTheme);
+
+        const adminName = localStorage.getItem('sms_admin_name') || 'Head';
+        const adminRole = localStorage.getItem('sms_admin_role') || 'head';
+        document.getElementById('sidebarAvatar').textContent = adminName.charAt(0).toUpperCase();
+        document.getElementById('sidebarName').textContent = adminName;
+        document.getElementById('sidebarRole').textContent = adminRole === 'head' ? t('role_head') : t('role_sub');
+        document.getElementById('welcomeName').textContent = adminName;
+
+        if (adminRole !== 'head') {
+            document.getElementById('navAdmins').style.display = 'none';
+        }
+
+        // Initialize profile
+        renderProfile();
+
+        console.log('👤 Profile page loaded with Firebase integration.');
+        console.log('👤 Logged in as:', adminName);
+        console.log('📌 Make sure to replace firebaseConfig with your own credentials.');
+    </script>
+
+</body>
+</html>
