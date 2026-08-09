@@ -155,6 +155,14 @@
             min-height: 20px;
             font-weight: 500;
         }
+        .login-success {
+            color: #27AE60;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 12px;
+            min-height: 20px;
+            font-weight: 500;
+        }
         .loading-spinner {
             display: none;
             text-align: center;
@@ -171,6 +179,20 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .setup-note {
+            font-size: 12px;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 16px;
+        }
+        .setup-note a {
+            color: var(--secondary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .setup-note a:hover {
+            text-decoration: underline;
         }
         @media (max-width: 480px) {
             .login-box {
@@ -193,13 +215,13 @@
             <div class="form-group">
                 <label for="loginUsername">Username</label>
                 <div class="input-wrap">
-                    <input type="text" id="loginUsername" placeholder="Enter username" required />
+                    <input type="text" id="loginUsername" placeholder="Enter username" />
                 </div>
             </div>
             <div class="form-group">
                 <label for="loginPassword">Password</label>
                 <div class="input-wrap">
-                    <input type="password" id="loginPassword" placeholder="Enter password" required />
+                    <input type="password" id="loginPassword" placeholder="Enter password" />
                     <button type="button" class="toggle-pass" id="loginTogglePass" aria-label="Toggle password visibility">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -208,7 +230,12 @@
             <button type="submit" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</button>
             <div class="loading-spinner" id="loginSpinner"><i class="fas fa-spinner"></i> Logging in...</div>
             <div class="login-error" id="loginError"></div>
+            <div class="login-success" id="loginSuccess"></div>
         </form>
+        
+        <div class="setup-note">
+            <a id="setupBtn">⚡ First time setup - Create Admin</a>
+        </div>
     </div>
 
     <!-- Firebase SDK -->
@@ -223,7 +250,7 @@
         // ============================================================
         //  FIREBASE CONFIG - REPLACE WITH YOUR OWN
         // ============================================================
-  const firebaseConfig = {
+   const firebaseConfig = {
     apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
     authDomain: "shop-m-system.firebaseapp.com",
     databaseURL: "https://shop-m-system-default-rtdb.firebaseio.com",
@@ -233,6 +260,7 @@
     appId: "1:1037445605212:web:b0420a71036fb525f30399",
     measurementId: "G-X0203129L3"
   };
+
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -246,8 +274,10 @@
         const loginUsername = document.getElementById('loginUsername');
         const loginPassword = document.getElementById('loginPassword');
         const loginError = document.getElementById('loginError');
+        const loginSuccess = document.getElementById('loginSuccess');
         const loginTogglePass = document.getElementById('loginTogglePass');
         const loginSpinner = document.getElementById('loginSpinner');
+        const setupBtn = document.getElementById('setupBtn');
 
         // Toggle password visibility
         loginTogglePass.addEventListener('click', function() {
@@ -263,59 +293,137 @@
         });
 
         // ============================================================
-        //  LOGIN FUNCTION
+        //  CREATE HEAD ADMIN (First Time Setup)
+        // ============================================================
+        setupBtn.addEventListener('click', async function() {
+            loginSpinner.classList.add('active');
+            loginError.textContent = '';
+            loginSuccess.textContent = '';
+
+            try {
+                // Sign in anonymously
+                let user = auth.currentUser;
+                if (!user) {
+                    try {
+                        await auth.signInAnonymously();
+                        user = auth.currentUser;
+                    } catch (authError) {
+                        loginError.textContent = '❌ Please enable Anonymous Authentication in Firebase Console.';
+                        loginSpinner.classList.remove('active');
+                        return;
+                    }
+                }
+
+                const headAdmin = {
+                    id: 'admin_head',
+                    name: 'Head Admin',
+                    username: 'sms.user',
+                    password: '12341122',
+                    email: '',
+                    role: 'head',
+                    permissions: { all: true, functions: [] },
+                    createdAt: new Date().toISOString()
+                };
+
+                // Check if already exists
+                try {
+                    const doc = await db.collection('admins').doc('admin_head').get();
+                    if (doc.exists) {
+                        loginSuccess.textContent = '✅ Admin already exists! You can login now.';
+                        loginSpinner.classList.remove('active');
+                        setTimeout(() => loginSuccess.textContent = '', 3000);
+                        return;
+                    }
+                } catch (e) {
+                    // Collection might not exist, continue
+                }
+
+                // Create admin
+                await db.collection('admins').doc('admin_head').set(headAdmin);
+                
+                // Create user data
+                const userRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
+                await userRef.set({
+                    items: [],
+                    companies: [],
+                    activities: [],
+                    admins: [headAdmin],
+                    createdAt: new Date().toISOString()
+                });
+
+                loginSuccess.textContent = '✅ Admin created successfully! You can now login.';
+                loginSpinner.classList.remove('active');
+                setTimeout(() => loginSuccess.textContent = '', 4000);
+
+            } catch (error) {
+                console.error('Setup error:', error);
+                loginError.textContent = 'Error: ' + error.message;
+                loginSpinner.classList.remove('active');
+            }
+        });
+
+        // ============================================================
+        //  LOGIN FUNCTION - FIXED
         // ============================================================
         async function login(username, password) {
             loginSpinner.classList.add('active');
             loginError.textContent = '';
+            loginSuccess.textContent = '';
 
             try {
-                // Try to sign in anonymously first
+                // Sign in anonymously first
                 let user = auth.currentUser;
                 if (!user) {
-                    await auth.signInAnonymously();
-                    user = auth.currentUser;
+                    try {
+                        await auth.signInAnonymously();
+                        user = auth.currentUser;
+                    } catch (authError) {
+                        loginError.textContent = '❌ Authentication error. Please enable Anonymous Auth in Firebase.';
+                        loginSpinner.classList.remove('active');
+                        return;
+                    }
                 }
 
-                // Query Firestore for admin with matching username and password
+                // Query Firestore for admin - using simple get and filter locally
                 const adminsRef = db.collection('admins');
-                const snapshot = await adminsRef.where('username', '==', username).where('password', '==', password).get();
-
-                if (snapshot.empty) {
-                    loginError.textContent = 'Invalid username or password.';
-                    loginSpinner.classList.remove('active');
-                    return false;
-                }
-
-                // Get admin data
-                let adminData = null;
-                let adminId = null;
+                const snapshot = await adminsRef.get();
+                
+                let foundAdmin = null;
+                let foundId = null;
+                
                 snapshot.forEach(doc => {
-                    adminData = doc.data();
-                    adminId = doc.id;
+                    const data = doc.data();
+                    if (data.username === username && data.password === password) {
+                        foundAdmin = data;
+                        foundId = doc.id;
+                    }
                 });
 
-                // Store admin info in localStorage for session
-                localStorage.setItem('sms_logged_in', 'true');
-                localStorage.setItem('sms_admin_name', adminData.name);
-                localStorage.setItem('sms_admin_role', adminData.role || 'sub');
-                localStorage.setItem('sms_admin_id', adminId);
-                if (adminData.permissions) {
-                    localStorage.setItem('sms_admin_permissions', JSON.stringify(adminData.permissions));
-                } else {
-                    localStorage.setItem('sms_admin_permissions', JSON.stringify({ all: false, functions: [] }));
+                if (!foundAdmin) {
+                    loginError.textContent = '❌ Invalid username or password.';
+                    loginSpinner.classList.remove('active');
+                    return;
                 }
+
+                // Store in localStorage
+                localStorage.setItem('sms_logged_in', 'true');
+                localStorage.setItem('sms_admin_name', foundAdmin.name);
+                localStorage.setItem('sms_admin_role', foundAdmin.role || 'sub');
+                localStorage.setItem('sms_admin_id', foundId);
+                localStorage.setItem('sms_admin_permissions', JSON.stringify(foundAdmin.permissions || { all: false, functions: [] }));
                 localStorage.setItem('sms_firebase_uid', user.uid);
 
                 loginSpinner.classList.remove('active');
-                window.location.href = 'dashboard.html';
-                return true;
+                loginSuccess.textContent = '✅ Login successful! Redirecting...';
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 500);
 
             } catch (error) {
                 console.error('Login error:', error);
                 loginError.textContent = 'Login error: ' + error.message;
                 loginSpinner.classList.remove('active');
-                return false;
             }
         }
 
@@ -326,11 +434,13 @@
             e.preventDefault();
             const username = loginUsername.value.trim();
             const password = loginPassword.value.trim();
-            if (username && password) {
-                login(username, password);
-            } else {
+            
+            if (!username || !password) {
                 loginError.textContent = 'Please enter username and password.';
+                return;
             }
+            
+            login(username, password);
         });
 
         // ============================================================
@@ -338,22 +448,12 @@
         // ============================================================
         auth.onAuthStateChanged(async function(user) {
             if (user && localStorage.getItem('sms_logged_in') === 'true') {
-                // Verify admin still exists in Firestore
                 const adminId = localStorage.getItem('sms_admin_id');
                 if (adminId) {
                     try {
                         const doc = await db.collection('admins').doc(adminId).get();
                         if (doc.exists) {
                             window.location.href = 'dashboard.html';
-                        } else {
-                            // Admin deleted from Firestore, logout
-                            localStorage.removeItem('sms_logged_in');
-                            localStorage.removeItem('sms_admin_name');
-                            localStorage.removeItem('sms_admin_role');
-                            localStorage.removeItem('sms_admin_id');
-                            localStorage.removeItem('sms_admin_permissions');
-                            localStorage.removeItem('sms_firebase_uid');
-                            await auth.signOut();
                         }
                     } catch (e) {
                         console.warn('Error verifying admin:', e);
@@ -362,9 +462,9 @@
             }
         });
 
-        console.log('🔐 Firebase Login page loaded.');
-        console.log('👤 Default Head Admin: sms.user / 12341122');
-        console.log('📌 Make sure to replace firebaseConfig with your own credentials.');
+        console.log('🔐 Login page loaded.');
+        console.log('👤 Default: sms.user / 12341122');
+        console.log('📌 Click "First time setup" if this is your first time.');
     </script>
 
 </body>
