@@ -6,7 +6,7 @@
     <title>Company - Shop Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        /* ===== Same styles as items.html (abbreviated) ===== */
+        /* ===== Same styles as items.html ===== */
         :root {
             --primary: #1B2A4A;
             --primary-light: #2C3E6B;
@@ -967,26 +967,67 @@
         // ============================================================
         //  FIREBASE CONFIG - REPLACE WITH YOUR OWN
         // ============================================================
-  const firebaseConfig = {
-    apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
-    authDomain: "shop-m-system.firebaseapp.com",
-    databaseURL: "https://shop-m-system-default-rtdb.firebaseio.com",
-    projectId: "shop-m-system",
-    storageBucket: "shop-m-system.firebasestorage.app",
-    messagingSenderId: "1037445605212",
-    appId: "1:1037445605212:web:b0420a71036fb525f30399",
-    measurementId: "G-X0203129L3"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
+            authDomain: "shop-m-system.firebaseapp.com",
+            projectId: "shop-m-system",
+            storageBucket: "shop-m-system.firebasestorage.app",
+            messagingSenderId: "1037445605212",
+            appId: "1:1037445605212:web:b0420a71036fb525f30399",
+            measurementId: "G-X0203129L3"
+        };
+
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         // ============================================================
-        //  CHECK LOGIN
+        //  CHECK LOGIN - NO localStorage
         // ============================================================
-        if (localStorage.getItem('sms_logged_in') !== 'true') {
-            window.location.href = 'index.html';
-        }
+        let currentAdmin = null;
+        let currentAdminId = null;
+
+        auth.onAuthStateChanged(async function(user) {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('admins').get();
+                let found = false;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.username === 'sms.user' || data.email === user.email) {
+                        currentAdmin = data;
+                        currentAdminId = doc.id;
+                        found = true;
+                    }
+                });
+
+                if (!found) {
+                    const headSnapshot = await db.collection('admins').doc('admin_head').get();
+                    if (headSnapshot.exists) {
+                        currentAdmin = headSnapshot.data();
+                        currentAdminId = 'admin_head';
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    await auth.signOut();
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                updateSidebar(currentAdmin);
+                renderCompanies();
+
+            } catch (error) {
+                console.error('Error checking admin:', error);
+                window.location.href = 'index.html';
+            }
+        });
 
         // ============================================================
         //  HELPERS
@@ -1007,11 +1048,26 @@
         }
 
         function hasPermission(permission) {
-            const role = localStorage.getItem('sms_admin_role') || 'head';
-            if (role === 'head') return true;
-            const perms = JSON.parse(localStorage.getItem('sms_admin_permissions') || '{"all":true,"functions":[]}');
-            if (perms.all) return true;
-            return perms.functions && perms.functions.includes(permission);
+            if (!currentAdmin) return false;
+            if (currentAdmin.role === 'head') return true;
+            if (currentAdmin.permissions && currentAdmin.permissions.all) return true;
+            if (currentAdmin.permissions && currentAdmin.permissions.functions) {
+                return currentAdmin.permissions.functions.includes(permission);
+            }
+            return false;
+        }
+
+        function updateSidebar(admin) {
+            if (!admin) return;
+            const avatar = document.getElementById('sidebarAvatar');
+            avatar.textContent = admin.name.charAt(0).toUpperCase();
+            document.getElementById('sidebarName').textContent = admin.name;
+            document.getElementById('sidebarRole').textContent = admin.role === 'head' ? 'Head Admin' : 'Sub Admin';
+            document.getElementById('welcomeName').textContent = admin.name;
+
+            if (admin.role !== 'head') {
+                document.getElementById('navAdmins').style.display = 'none';
+            }
         }
 
         // ============================================================
@@ -1019,8 +1075,9 @@
         // ============================================================
         async function getData() {
             try {
-                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
-                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                const user = auth.currentUser;
+                if (!user) return { items: [], companies: [], activities: [], admins: [] };
+                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
                 const doc = await docRef.get();
                 if (doc.exists) {
                     return doc.data();
@@ -1034,8 +1091,9 @@
 
         async function saveData(data) {
             try {
-                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
-                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                const user = auth.currentUser;
+                if (!user) return false;
+                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
                 await docRef.set(data, { merge: true });
                 return true;
             } catch (error) {
@@ -1045,14 +1103,13 @@
         }
 
         async function addActivity(data, action, details) {
-            const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-            const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+            if (!currentAdmin) return;
             if (!data.activities) data.activities = [];
             data.activities.unshift({
                 id: generateId(),
                 action: action,
-                adminId: adminId,
-                adminName: adminName,
+                adminId: currentAdminId,
+                adminName: currentAdmin.name,
                 details: details,
                 timestamp: new Date().toISOString()
             });
@@ -1183,7 +1240,6 @@
             if (!name) { alert('Company name is required.'); return; }
 
             if (!data.companies) data.companies = [];
-            const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
 
             if (id) {
                 if (!hasPermission('edit_company')) {
@@ -1205,7 +1261,7 @@
                 const newCompany = {
                     id: generateId(),
                     name,
-                    createdBy: adminId,
+                    createdBy: currentAdminId,
                     createdAt: new Date().toISOString()
                 };
                 data.companies.push(newCompany);
@@ -1218,7 +1274,6 @@
         });
 
         function editCompany(id) {
-            // We need to get data from cache or fetch again
             getData().then(data => {
                 const company = data.companies.find(c => c.id === id);
                 if (!company) return;
@@ -1258,9 +1313,9 @@
         document.getElementById('companyCancelBtn').addEventListener('click', resetCompanyForm);
 
         // ============================================================
-        //  THEME
+        //  THEME - Stored in Firestore
         // ============================================================
-        function applyTheme(theme) {
+        async function applyTheme(theme) {
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 document.getElementById('themeIcon').className = 'fas fa-sun';
@@ -1270,12 +1325,20 @@
                 document.getElementById('themeIcon').className = 'fas fa-moon';
                 document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
             }
-            localStorage.setItem('sms_theme', theme);
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    await db.collection('users').doc(user.uid).update({ theme: theme });
+                }
+            } catch (e) {
+                console.warn('Could not save theme to Firestore:', e);
+            }
         }
 
-        function toggleTheme() {
-            const current = localStorage.getItem('sms_theme') || 'light';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
+        async function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            await applyTheme(newTheme);
         }
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
@@ -1305,7 +1368,7 @@
             document.querySelector('[data-key="cancel"]').textContent = t('cancel');
             document.querySelector('[data-key="all_companies"]').textContent = t('all_companies');
 
-            const theme = localStorage.getItem('sms_theme') || 'light';
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
             if (theme === 'dark') {
                 document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
             } else {
@@ -1377,43 +1440,21 @@
         });
 
         // ============================================================
-        //  LOGOUT
+        //  LOGOUT - NO localStorage
         // ============================================================
         document.getElementById('logoutBtn').addEventListener('click', async function() {
             try {
                 await auth.signOut();
-            } catch (e) { console.warn('Sign out error:', e); }
-            localStorage.removeItem('sms_logged_in');
-            localStorage.removeItem('sms_admin_name');
-            localStorage.removeItem('sms_admin_role');
-            localStorage.removeItem('sms_admin_id');
-            localStorage.removeItem('sms_admin_permissions');
-            localStorage.removeItem('sms_firebase_uid');
+            } catch (e) {
+                console.warn('Sign out error:', e);
+            }
             window.location.href = 'index.html';
         });
 
         // ============================================================
         //  INIT
         // ============================================================
-        const savedTheme = localStorage.getItem('sms_theme') || 'light';
-        applyTheme(savedTheme);
-
-        const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-        const adminRole = localStorage.getItem('sms_admin_role') || 'head';
-        document.getElementById('sidebarAvatar').textContent = adminName.charAt(0).toUpperCase();
-        document.getElementById('sidebarName').textContent = adminName;
-        document.getElementById('sidebarRole').textContent = adminRole === 'head' ? t('role_head') : t('role_sub');
-        document.getElementById('welcomeName').textContent = adminName;
-
-        if (adminRole !== 'head') {
-            document.getElementById('navAdmins').style.display = 'none';
-        }
-
-        renderCompanies();
-
-        console.log('🏢 Company page loaded with Firebase integration.');
-        console.log('👤 Logged in as:', adminName);
-        console.log('📌 Make sure to replace firebaseConfig with your own credentials.');
+        console.log('🏢 Company page loaded with Firebase-Only (NO localStorage).');
     </script>
 
 </body>

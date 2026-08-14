@@ -6,7 +6,6 @@
     <title>Dashboard - Shop Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        /* ===== CSS VARIABLES ===== */
         :root {
             --primary: #1B2A4A;
             --primary-light: #2C3E6B;
@@ -157,7 +156,6 @@
             color: var(--text-light);
         }
 
-        /* ===== RESET & BASE ===== */
         *,
         *::before,
         *::after {
@@ -231,7 +229,6 @@
             background: var(--primary-light);
         }
 
-        /* ===== SIDEBAR ===== */
         .sidebar {
             width: var(--sidebar-width);
             background: var(--primary);
@@ -370,7 +367,6 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
-        /* ===== SIDEBAR TOGGLE ===== */
         .sidebar-toggle {
             display: none;
             position: fixed;
@@ -399,7 +395,6 @@
             backdrop-filter: blur(2px);
         }
 
-        /* ===== MAIN CONTENT ===== */
         .main-content {
             flex: 1;
             min-height: 100vh;
@@ -509,7 +504,6 @@
             margin: 0 auto;
         }
 
-        /* ===== CARDS ===== */
         .card {
             background: var(--card);
             border-radius: var(--radius);
@@ -538,7 +532,6 @@
             margin-right: 8px;
         }
 
-        /* ===== STATS ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -568,7 +561,6 @@
             margin-top: 4px;
         }
 
-        /* ===== ACTIVITY ===== */
         .activity-list {
             display: flex;
             flex-direction: column;
@@ -820,15 +812,11 @@
 </head>
 <body>
 
-    <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Sidebar Toggle -->
     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
         <i class="fas fa-bars"></i>
     </button>
 
-    <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <i class="fas fa-store-alt"></i>
@@ -857,7 +845,6 @@
         </div>
     </aside>
 
-    <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
         <header class="topbar">
             <div class="page-title">
@@ -877,8 +864,6 @@
         </header>
 
         <div class="content-area">
-
-            <!-- Stats -->
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="stat-number" id="totalItems">0</div>
@@ -898,7 +883,6 @@
                 </div>
             </div>
 
-            <!-- Recent Activity -->
             <div class="card">
                 <div class="card-header">
                     <h3><i class="fas fa-history"></i> <span data-key="recent_activity">Recent Activity</span></h3>
@@ -911,7 +895,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -924,39 +907,72 @@
     </script>
 
     <script>
-        // ============================================================
-        //  FIREBASE CONFIG - REPLACE WITH YOUR OWN
-        // ============================================================
-  const firebaseConfig = {
-    apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
-    authDomain: "shop-m-system.firebaseapp.com",
-    databaseURL: "https://shop-m-system-default-rtdb.firebaseio.com",
-    projectId: "shop-m-system",
-    storageBucket: "shop-m-system.firebasestorage.app",
-    messagingSenderId: "1037445605212",
-    appId: "1:1037445605212:web:b0420a71036fb525f30399",
-    measurementId: "G-X0203129L3"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
+            authDomain: "shop-m-system.firebaseapp.com",
+            projectId: "shop-m-system",
+            storageBucket: "shop-m-system.firebasestorage.app",
+            messagingSenderId: "1037445605212",
+            appId: "1:1037445605212:web:b0420a71036fb525f30399",
+            measurementId: "G-X0203129L3"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         // ============================================================
-        //  CHECK LOGIN
+        //  CHECK LOGIN - NO localStorage
         // ============================================================
-        if (localStorage.getItem('sms_logged_in') !== 'true') {
-            window.location.href = 'index.html';
-        }
+        let currentAdmin = null;
+        let currentAdminId = null;
 
-        // ============================================================
-        //  DATA HELPERS
-        // ============================================================
+        auth.onAuthStateChanged(async function(user) {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('admins').get();
+                let found = false;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.username === 'sms.user' || data.email === user.email) {
+                        currentAdmin = data;
+                        currentAdminId = doc.id;
+                        found = true;
+                    }
+                });
+
+                if (!found) {
+                    const headSnapshot = await db.collection('admins').doc('admin_head').get();
+                    if (headSnapshot.exists) {
+                        currentAdmin = headSnapshot.data();
+                        currentAdminId = 'admin_head';
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    await auth.signOut();
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                updateSidebar(currentAdmin);
+                renderDashboard();
+
+            } catch (error) {
+                console.error('Error checking admin:', error);
+                window.location.href = 'index.html';
+            }
+        });
+
         function formatDate(iso) {
             if (!iso) return '—';
             const d = new Date(iso);
-            return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit',
-                minute: '2-digit' });
+            return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
 
         function formatDateShort(iso) {
@@ -976,9 +992,35 @@
             });
         }
 
-        // ============================================================
-        //  TRANSLATIONS
-        // ============================================================
+        function updateSidebar(admin) {
+            if (!admin) return;
+            const avatar = document.getElementById('sidebarAvatar');
+            avatar.textContent = admin.name.charAt(0).toUpperCase();
+            document.getElementById('sidebarName').textContent = admin.name;
+            document.getElementById('sidebarRole').textContent = admin.role === 'head' ? 'Head Admin' : 'Sub Admin';
+            document.getElementById('welcomeName').textContent = admin.name;
+
+            if (admin.role !== 'head') {
+                document.getElementById('navAdmins').style.display = 'none';
+            }
+        }
+
+        async function getData() {
+            try {
+                const user = auth.currentUser;
+                if (!user) return { items: [], companies: [], activities: [], admins: [] };
+                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
+                const doc = await docRef.get();
+                if (doc.exists) {
+                    return doc.data();
+                }
+                return { items: [], companies: [], activities: [], admins: [] };
+            } catch (error) {
+                console.error('Error getting data:', error);
+                return { items: [], companies: [], activities: [], admins: [] };
+            }
+        }
+
         const TRANSLATIONS = {
             en: {
                 nav_dashboard: 'Dashboard',
@@ -1018,33 +1060,12 @@
             return TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key] ? TRANSLATIONS[currentLang][key] : key;
         }
 
-        // ============================================================
-        //  RENDER DASHBOARD
-        // ============================================================
         async function renderDashboard() {
             try {
-                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
-                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
-                const doc = await docRef.get();
+                const data = await getData();
 
-                let data = {
-                    items: [],
-                    companies: [],
-                    activities: [],
-                    admins: []
-                };
-
-                if (doc.exists) {
-                    data = doc.data();
-                    if (!data.items) data.items = [];
-                    if (!data.companies) data.companies = [];
-                    if (!data.activities) data.activities = [];
-                    if (!data.admins) data.admins = [];
-                }
-
-                // Stats
                 const itemActions = ['add_item', 'edit_item', 'delete_item'];
-                const recentActivities = data.activities
+                const recentActivities = (data.activities || [])
                     .filter(a => itemActions.includes(a.action))
                     .slice(0, 200);
 
@@ -1052,12 +1073,11 @@
                 tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
                 const recent = recentActivities.filter(a => new Date(a.timestamp) >= tenDaysAgo);
 
-                document.getElementById('totalItems').textContent = data.items.length;
-                document.getElementById('totalCompanies').textContent = data.companies.length;
-                document.getElementById('totalAdmins').textContent = data.admins.length;
+                document.getElementById('totalItems').textContent = (data.items || []).length;
+                document.getElementById('totalCompanies').textContent = (data.companies || []).length;
+                document.getElementById('totalAdmins').textContent = (data.admins || []).length;
                 document.getElementById('recentActivities').textContent = recent.length;
 
-                // Activity List
                 const container = document.getElementById('activityListContainer');
 
                 if (recent.length === 0) {
@@ -1097,20 +1117,22 @@
                 html += '</div>';
                 container.innerHTML = html;
 
-                // Listen for real-time updates
-                docRef.onSnapshot(function(snapshot) {
-                    if (snapshot.exists) {
-                        const updatedData = snapshot.data();
-                        const newRecent = (updatedData.activities || [])
-                            .filter(a => itemActions.includes(a.action))
-                            .filter(a => new Date(a.timestamp) >= tenDaysAgo);
-                        // Update stats
-                        document.getElementById('totalItems').textContent = (updatedData.items || []).length;
-                        document.getElementById('totalCompanies').textContent = (updatedData.companies || []).length;
-                        document.getElementById('totalAdmins').textContent = (updatedData.admins || []).length;
-                        document.getElementById('recentActivities').textContent = newRecent.length;
-                    }
-                });
+                const user = auth.currentUser;
+                if (user) {
+                    const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
+                    docRef.onSnapshot(function(snapshot) {
+                        if (snapshot.exists) {
+                            const updatedData = snapshot.data();
+                            const newRecent = (updatedData.activities || [])
+                                .filter(a => itemActions.includes(a.action))
+                                .filter(a => new Date(a.timestamp) >= tenDaysAgo);
+                            document.getElementById('totalItems').textContent = (updatedData.items || []).length;
+                            document.getElementById('totalCompanies').textContent = (updatedData.companies || []).length;
+                            document.getElementById('totalAdmins').textContent = (updatedData.admins || []).length;
+                            document.getElementById('recentActivities').textContent = newRecent.length;
+                        }
+                    });
+                }
 
             } catch (error) {
                 console.error('Error rendering dashboard:', error);
@@ -1124,10 +1146,7 @@
             }
         }
 
-        // ============================================================
-        //  THEME
-        // ============================================================
-        function applyTheme(theme) {
+        async function applyTheme(theme) {
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 document.getElementById('themeIcon').className = 'fas fa-sun';
@@ -1137,19 +1156,41 @@
                 document.getElementById('themeIcon').className = 'fas fa-moon';
                 document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
             }
-            localStorage.setItem('sms_theme', theme);
+            
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    await db.collection('users').doc(user.uid).update({ theme: theme });
+                }
+            } catch (e) {
+                console.warn('Could not save theme to Firestore:', e);
+            }
         }
 
-        function toggleTheme() {
-            const current = localStorage.getItem('sms_theme') || 'light';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
+        async function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            await applyTheme(newTheme);
+        }
+
+        async function loadTheme() {
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    const doc = await db.collection('users').doc(user.uid).get();
+                    if (doc.exists && doc.data().theme) {
+                        await applyTheme(doc.data().theme);
+                        return;
+                    }
+                }
+                applyTheme('light');
+            } catch (e) {
+                applyTheme('light');
+            }
         }
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
-        // ============================================================
-        //  LANGUAGE
-        // ============================================================
         function setLanguage(lang) {
             currentLang = lang;
             document.body.classList.toggle('lang-urdu', lang === 'ur');
@@ -1168,7 +1209,7 @@
             document.querySelector('[data-key="title_dashboard"]').textContent = t('title_dashboard');
             document.querySelector('[data-key="recent_activity"]').textContent = t('recent_activity');
 
-            const theme = localStorage.getItem('sms_theme') || 'light';
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
             if (theme === 'dark') {
                 document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
             } else {
@@ -1184,9 +1225,6 @@
             });
         });
 
-        // ============================================================
-        //  SIDEBAR
-        // ============================================================
         function openSidebar() {
             document.getElementById('sidebar').classList.add('open');
             document.getElementById('sidebarOverlay').classList.add('active');
@@ -1204,46 +1242,22 @@
             if (window.innerWidth > 992) closeSidebar();
         });
 
-        // ============================================================
-        //  LOGOUT
-        // ============================================================
         document.getElementById('logoutBtn').addEventListener('click', async function() {
             try {
                 await auth.signOut();
             } catch (e) {
                 console.warn('Sign out error:', e);
             }
-            localStorage.removeItem('sms_logged_in');
-            localStorage.removeItem('sms_admin_name');
-            localStorage.removeItem('sms_admin_role');
-            localStorage.removeItem('sms_admin_id');
-            localStorage.removeItem('sms_admin_permissions');
-            localStorage.removeItem('sms_firebase_uid');
             window.location.href = 'index.html';
         });
 
-        // ============================================================
-        //  INIT
-        // ============================================================
-        const savedTheme = localStorage.getItem('sms_theme') || 'light';
-        applyTheme(savedTheme);
+        auth.onAuthStateChanged(async function(user) {
+            if (user) {
+                await loadTheme();
+            }
+        });
 
-        const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-        const adminRole = localStorage.getItem('sms_admin_role') || 'head';
-        document.getElementById('sidebarAvatar').textContent = adminName.charAt(0).toUpperCase();
-        document.getElementById('sidebarName').textContent = adminName;
-        document.getElementById('sidebarRole').textContent = adminRole === 'head' ? t('role_head') : t('role_sub');
-        document.getElementById('welcomeName').textContent = adminName;
-
-        if (adminRole !== 'head') {
-            document.getElementById('navAdmins').style.display = 'none';
-        }
-
-        renderDashboard();
-
-        console.log('📊 Dashboard loaded with Firebase integration.');
-        console.log('👤 Logged in as:', adminName);
-        console.log('📌 Make sure to replace firebaseConfig with your own credentials.');
+        console.log('📊 Dashboard loaded with Firebase-Only (NO localStorage).');
     </script>
 
 </body>

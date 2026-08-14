@@ -922,16 +922,15 @@
         // ============================================================
         //  FIREBASE CONFIG - REPLACE WITH YOUR OWN
         // ============================================================
-  const firebaseConfig = {
-    apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
-    authDomain: "shop-m-system.firebaseapp.com",
-    databaseURL: "https://shop-m-system-default-rtdb.firebaseio.com",
-    projectId: "shop-m-system",
-    storageBucket: "shop-m-system.firebasestorage.app",
-    messagingSenderId: "1037445605212",
-    appId: "1:1037445605212:web:b0420a71036fb525f30399",
-    measurementId: "G-X0203129L3"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
+            authDomain: "shop-m-system.firebaseapp.com",
+            projectId: "shop-m-system",
+            storageBucket: "shop-m-system.firebasestorage.app",
+            messagingSenderId: "1037445605212",
+            appId: "1:1037445605212:web:b0420a71036fb525f30399",
+            measurementId: "G-X0203129L3"
+        };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -939,11 +938,52 @@
         const db = firebase.firestore();
 
         // ============================================================
-        //  CHECK LOGIN
+        //  CHECK LOGIN - NO localStorage
         // ============================================================
-        if (localStorage.getItem('sms_logged_in') !== 'true') {
-            window.location.href = 'index.html';
-        }
+        let currentAdmin = null;
+        let currentAdminId = null;
+
+        auth.onAuthStateChanged(async function(user) {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('admins').get();
+                let found = false;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.username === 'sms.user' || data.email === user.email) {
+                        currentAdmin = data;
+                        currentAdminId = doc.id;
+                        found = true;
+                    }
+                });
+
+                if (!found) {
+                    const headSnapshot = await db.collection('admins').doc('admin_head').get();
+                    if (headSnapshot.exists) {
+                        currentAdmin = headSnapshot.data();
+                        currentAdminId = 'admin_head';
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    await auth.signOut();
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                updateSidebar(currentAdmin);
+                renderProfile();
+
+            } catch (error) {
+                console.error('Error checking admin:', error);
+                window.location.href = 'index.html';
+            }
+        });
 
         // ============================================================
         //  HELPERS
@@ -970,13 +1010,31 @@
                 minute: '2-digit' });
         }
 
+        function updateSidebar(admin) {
+            if (!admin) return;
+            const avatar = document.getElementById('sidebarAvatar');
+            if (admin.profilePic) {
+                avatar.innerHTML = `<img src="${admin.profilePic}" alt="${admin.name}" />`;
+            } else {
+                avatar.textContent = admin.name.charAt(0).toUpperCase();
+            }
+            document.getElementById('sidebarName').textContent = admin.name;
+            document.getElementById('sidebarRole').textContent = admin.role === 'head' ? 'Head Admin' : 'Sub Admin';
+            document.getElementById('welcomeName').textContent = admin.name;
+
+            if (admin.role !== 'head') {
+                document.getElementById('navAdmins').style.display = 'none';
+            }
+        }
+
         // ============================================================
         //  FIREBASE DATA HELPERS
         // ============================================================
         async function getData() {
             try {
-                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
-                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                const user = auth.currentUser;
+                if (!user) return { items: [], companies: [], activities: [], admins: [] };
+                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
                 const doc = await docRef.get();
                 if (doc.exists) {
                     return doc.data();
@@ -990,8 +1048,9 @@
 
         async function saveData(data) {
             try {
-                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
-                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                const user = auth.currentUser;
+                if (!user) return false;
+                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
                 await docRef.set(data, { merge: true });
                 return true;
             } catch (error) {
@@ -1001,14 +1060,13 @@
         }
 
         async function addActivity(data, action, details) {
-            const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-            const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+            if (!currentAdmin) return;
             if (!data.activities) data.activities = [];
             data.activities.unshift({
                 id: generateId(),
                 action: action,
-                adminId: adminId,
-                adminName: adminName,
+                adminId: currentAdminId,
+                adminName: currentAdmin.name,
                 details: details,
                 timestamp: new Date().toISOString()
             });
@@ -1094,26 +1152,22 @@
         async function renderProfile() {
             try {
                 const data = await getData();
-                const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
-                let admin = (data.admins || []).find(a => a.id === adminId);
+                let admin = (data.admins || []).find(a => a.id === currentAdminId);
 
-                // If admin not found, try to find by username or create default
+                // If admin not found in data, use currentAdmin
                 if (!admin) {
-                    const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-                    admin = {
-                        id: adminId,
-                        name: adminName,
-                        username: localStorage.getItem('sms_admin_username') || 'sms.user',
-                        password: '12341122',
-                        email: '',
-                        role: 'head',
-                        permissions: { all: true, functions: [] },
-                        createdAt: new Date().toISOString(),
-                        profilePic: ''
-                    };
-                    if (!data.admins) data.admins = [];
-                    data.admins.push(admin);
-                    await saveData(data);
+                    admin = currentAdmin;
+                }
+
+                if (!admin) {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h4>Admin not found</h4>
+                            <p>Please contact the system administrator.</p>
+                        </div>
+                    `;
+                    return;
                 }
 
                 // Update form fields
@@ -1167,30 +1221,13 @@
         }
 
         // ============================================================
-        //  UPDATE SIDEBAR
-        // ============================================================
-        function updateSidebar(admin) {
-            const avatar = document.getElementById('sidebarAvatar');
-            if (admin && admin.profilePic) {
-                avatar.innerHTML = `<img src="${admin.profilePic}" alt="${admin.name}" />`;
-            } else if (admin) {
-                avatar.textContent = admin.name.charAt(0).toUpperCase();
-            }
-            if (admin) {
-                document.getElementById('sidebarName').textContent = admin.name;
-                document.getElementById('welcomeName').textContent = admin.name;
-            }
-        }
-
-        // ============================================================
         //  PROFILE UPDATE
         // ============================================================
         document.getElementById('profileForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             try {
                 const data = await getData();
-                const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
-                const admin = (data.admins || []).find(a => a.id === adminId);
+                let admin = (data.admins || []).find(a => a.id === currentAdminId);
 
                 if (!admin) {
                     alert('Admin not found.');
@@ -1218,11 +1255,11 @@
                 admin.email = email;
                 if (password) admin.password = password;
 
+                // Save to Firestore
                 await saveData(data);
 
-                // Update local storage
-                localStorage.setItem('sms_admin_name', name);
-                localStorage.setItem('sms_admin_username', username);
+                // Update currentAdmin
+                currentAdmin = admin;
 
                 await renderProfile();
                 showToast(t('profile_updated'));
@@ -1250,11 +1287,11 @@
         document.getElementById('removePicBtn').addEventListener('click', async function() {
             try {
                 const data = await getData();
-                const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
-                const admin = (data.admins || []).find(a => a.id === adminId);
+                let admin = (data.admins || []).find(a => a.id === currentAdminId);
                 if (!admin) return;
                 admin.profilePic = '';
                 await saveData(data);
+                currentAdmin = admin;
                 await renderProfile();
                 showToast(t('pic_removed'));
             } catch (error) {
@@ -1269,11 +1306,11 @@
                 const reader = new FileReader();
                 reader.onload = async function(e) {
                     const data = await getData();
-                    const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
-                    const admin = (data.admins || []).find(a => a.id === adminId);
+                    let admin = (data.admins || []).find(a => a.id === currentAdminId);
                     if (!admin) return;
                     admin.profilePic = e.target.result;
                     await saveData(data);
+                    currentAdmin = admin;
                     await renderProfile();
                     showToast(t('pic_updated'));
                 };
@@ -1285,9 +1322,9 @@
         }
 
         // ============================================================
-        //  THEME
+        //  THEME - Stored in Firestore
         // ============================================================
-        function applyTheme(theme) {
+        async function applyTheme(theme) {
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 document.getElementById('themeIcon').className = 'fas fa-sun';
@@ -1297,12 +1334,20 @@
                 document.getElementById('themeIcon').className = 'fas fa-moon';
                 document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
             }
-            localStorage.setItem('sms_theme', theme);
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    await db.collection('users').doc(user.uid).update({ theme: theme });
+                }
+            } catch (e) {
+                console.warn('Could not save theme to Firestore:', e);
+            }
         }
 
-        function toggleTheme() {
-            const current = localStorage.getItem('sms_theme') || 'light';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
+        async function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            await applyTheme(newTheme);
         }
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
@@ -1336,7 +1381,7 @@
             document.querySelector('[data-key="upload_photo"]').textContent = t('upload_photo');
             document.querySelector('[data-key="remove_photo"]').textContent = t('remove_photo');
 
-            const theme = localStorage.getItem('sms_theme') || 'light';
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
             if (theme === 'dark') {
                 document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
             } else {
@@ -1390,7 +1435,7 @@
         });
 
         // ============================================================
-        //  LOGOUT
+        //  LOGOUT - NO localStorage
         // ============================================================
         document.getElementById('logoutBtn').addEventListener('click', async function() {
             try {
@@ -1398,38 +1443,10 @@
             } catch (e) {
                 console.warn('Sign out error:', e);
             }
-            localStorage.removeItem('sms_logged_in');
-            localStorage.removeItem('sms_admin_name');
-            localStorage.removeItem('sms_admin_role');
-            localStorage.removeItem('sms_admin_id');
-            localStorage.removeItem('sms_admin_permissions');
-            localStorage.removeItem('sms_firebase_uid');
             window.location.href = 'index.html';
         });
 
-        // ============================================================
-        //  INIT
-        // ============================================================
-        const savedTheme = localStorage.getItem('sms_theme') || 'light';
-        applyTheme(savedTheme);
-
-        const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-        const adminRole = localStorage.getItem('sms_admin_role') || 'head';
-        document.getElementById('sidebarAvatar').textContent = adminName.charAt(0).toUpperCase();
-        document.getElementById('sidebarName').textContent = adminName;
-        document.getElementById('sidebarRole').textContent = adminRole === 'head' ? t('role_head') : t('role_sub');
-        document.getElementById('welcomeName').textContent = adminName;
-
-        if (adminRole !== 'head') {
-            document.getElementById('navAdmins').style.display = 'none';
-        }
-
-        // Initialize profile
-        renderProfile();
-
-        console.log('👤 Profile page loaded with Firebase integration.');
-        console.log('👤 Logged in as:', adminName);
-        console.log('📌 Make sure to replace firebaseConfig with your own credentials.');
+        console.log('👤 Profile page loaded with Firebase-Only (NO localStorage).');
     </script>
 
 </body>

@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js">
     </script>
     <style>
-        /* ===== Same styles as dashboard.html ===== */
         :root {
             --primary: #1B2A4A;
             --primary-light: #2C3E6B;
@@ -1126,15 +1125,11 @@
 </head>
 <body>
 
-    <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Sidebar Toggle -->
     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
         <i class="fas fa-bars"></i>
     </button>
 
-    <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <i class="fas fa-store-alt"></i>
@@ -1163,7 +1158,6 @@
         </div>
     </aside>
 
-    <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
         <header class="topbar">
             <div class="page-title">
@@ -1184,7 +1178,6 @@
 
         <div class="content-area">
 
-            <!-- Add Item -->
             <div class="card">
                 <div class="card-header">
                     <h3><i class="fas fa-plus-circle"></i> <span data-key="add_item">Add New Item</span></h3>
@@ -1241,7 +1234,6 @@
                 </div>
             </div>
 
-            <!-- All Items -->
             <div class="card">
                 <div class="card-header">
                     <h3><i class="fas fa-list"></i> <span data-key="all_items">All Items</span></h3>
@@ -1272,7 +1264,6 @@
         </div>
     </main>
 
-    <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -1283,7 +1274,6 @@
         </div>
     </div>
 
-    <!-- Hidden file input -->
     <input type="file" id="csvFileInput" accept=".csv" style="display:none" />
 
     <!-- Firebase SDK -->
@@ -1295,34 +1285,68 @@
     </script>
 
     <script>
-        // ============================================================
-        //  FIREBASE CONFIG - REPLACE WITH YOUR OWN
-        // ============================================================
-       const firebaseConfig = {
-    apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
-    authDomain: "shop-m-system.firebaseapp.com",
-    databaseURL: "https://shop-m-system-default-rtdb.firebaseio.com",
-    projectId: "shop-m-system",
-    storageBucket: "shop-m-system.firebasestorage.app",
-    messagingSenderId: "1037445605212",
-    appId: "1:1037445605212:web:b0420a71036fb525f30399",
-    measurementId: "G-X0203129L3"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
+            authDomain: "shop-m-system.firebaseapp.com",
+            projectId: "shop-m-system",
+            storageBucket: "shop-m-system.firebasestorage.app",
+            messagingSenderId: "1037445605212",
+            appId: "1:1037445605212:web:b0420a71036fb525f30399",
+            measurementId: "G-X0203129L3"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         // ============================================================
-        //  CHECK LOGIN
+        //  CHECK LOGIN - NO localStorage
         // ============================================================
-        if (localStorage.getItem('sms_logged_in') !== 'true') {
-            window.location.href = 'index.html';
-        }
+        let currentAdmin = null;
+        let currentAdminId = null;
 
-        // ============================================================
-        //  HELPERS
-        // ============================================================
+        auth.onAuthStateChanged(async function(user) {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('admins').get();
+                let found = false;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.username === 'sms.user' || data.email === user.email) {
+                        currentAdmin = data;
+                        currentAdminId = doc.id;
+                        found = true;
+                    }
+                });
+
+                if (!found) {
+                    const headSnapshot = await db.collection('admins').doc('admin_head').get();
+                    if (headSnapshot.exists) {
+                        currentAdmin = headSnapshot.data();
+                        currentAdminId = 'admin_head';
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    await auth.signOut();
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                updateSidebar(currentAdmin);
+                renderItems();
+
+            } catch (error) {
+                console.error('Error checking admin:', error);
+                window.location.href = 'index.html';
+            }
+        });
+
         function generateId() {
             return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
         }
@@ -1344,11 +1368,6 @@
             });
         }
 
-        function getAdminName(adminId) {
-            // This will be resolved from Firestore admins collection
-            return adminId || 'Unknown';
-        }
-
         function getCompanyName(companyId, companies) {
             if (!companyId || !companies) return '';
             const c = companies.find(c => c.id === companyId);
@@ -1356,20 +1375,33 @@
         }
 
         function hasPermission(permission) {
-            const role = localStorage.getItem('sms_admin_role') || 'head';
-            if (role === 'head') return true;
-            const perms = JSON.parse(localStorage.getItem('sms_admin_permissions') || '{"all":true,"functions":[]}');
-            if (perms.all) return true;
-            return perms.functions && perms.functions.includes(permission);
+            if (!currentAdmin) return false;
+            if (currentAdmin.role === 'head') return true;
+            if (currentAdmin.permissions && currentAdmin.permissions.all) return true;
+            if (currentAdmin.permissions && currentAdmin.permissions.functions) {
+                return currentAdmin.permissions.functions.includes(permission);
+            }
+            return false;
         }
 
-        // ============================================================
-        //  FIREBASE DATA HELPERS
-        // ============================================================
+        function updateSidebar(admin) {
+            if (!admin) return;
+            const avatar = document.getElementById('sidebarAvatar');
+            avatar.textContent = admin.name.charAt(0).toUpperCase();
+            document.getElementById('sidebarName').textContent = admin.name;
+            document.getElementById('sidebarRole').textContent = admin.role === 'head' ? 'Head Admin' : 'Sub Admin';
+            document.getElementById('welcomeName').textContent = admin.name;
+
+            if (admin.role !== 'head') {
+                document.getElementById('navAdmins').style.display = 'none';
+            }
+        }
+
         async function getData() {
             try {
-                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
-                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                const user = auth.currentUser;
+                if (!user) return { items: [], companies: [], activities: [], admins: [] };
+                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
                 const doc = await docRef.get();
                 if (doc.exists) {
                     return doc.data();
@@ -1383,8 +1415,9 @@
 
         async function saveData(data) {
             try {
-                const uid = localStorage.getItem('sms_firebase_uid') || 'anonymous';
-                const docRef = db.collection('users').doc(uid).collection('data').doc('appData');
+                const user = auth.currentUser;
+                if (!user) return false;
+                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
                 await docRef.set(data, { merge: true });
                 return true;
             } catch (error) {
@@ -1394,14 +1427,13 @@
         }
 
         async function addActivity(data, action, details) {
-            const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-            const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
+            if (!currentAdmin) return;
             if (!data.activities) data.activities = [];
             data.activities.unshift({
                 id: generateId(),
                 action: action,
-                adminId: adminId,
-                adminName: adminName,
+                adminId: currentAdminId,
+                adminName: currentAdmin.name,
                 details: details,
                 timestamp: new Date().toISOString()
             });
@@ -1409,9 +1441,6 @@
             await saveData(data);
         }
 
-        // ============================================================
-        //  TRANSLATIONS
-        // ============================================================
         const TRANSLATIONS = {
             en: {
                 nav_dashboard: 'Dashboard',
@@ -1509,9 +1538,6 @@
             return TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key] ? TRANSLATIONS[currentLang][key] : key;
         }
 
-        // ============================================================
-        //  RENDER ITEMS
-        // ============================================================
         async function renderItems() {
             const container = document.getElementById('itemsListContainer');
             const search = document.getElementById('itemSearch').value.toLowerCase().trim();
@@ -1678,9 +1704,6 @@
             if (currentVal) sel.value = currentVal;
         }
 
-        // ============================================================
-        //  ITEM CRUD
-        // ============================================================
         document.getElementById('itemForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const data = await getData();
@@ -1699,9 +1722,6 @@
             if (isNaN(sellPriceCotton) || sellPriceCotton < 0) { alert('Sell price per cotton is required.'); return; }
             if (isNaN(sellPriceBox) || sellPriceBox < 0) { alert('Sell price per box is required.'); return; }
 
-            const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-            const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
-
             if (!data.items) data.items = [];
 
             if (id) {
@@ -1718,7 +1738,7 @@
                 existing.boxPrice = boxPrice;
                 existing.sellPriceCotton = sellPriceCotton;
                 existing.sellPriceBox = sellPriceBox;
-                existing.updatedBy = adminId;
+                existing.updatedBy = currentAdminId;
                 existing.updatedAt = new Date().toISOString();
                 await addActivity(data, 'edit_item', `${t('edit_item_activity')}: ${name}`);
                 await saveData(data);
@@ -1739,7 +1759,7 @@
                     boxPrice,
                     sellPriceCotton,
                     sellPriceBox,
-                    createdBy: adminId,
+                    createdBy: currentAdminId,
                     createdAt: new Date().toISOString(),
                     updatedBy: null,
                     updatedAt: null
@@ -1814,9 +1834,6 @@
         document.getElementById('itemCottonPieces').addEventListener('input', calcBoxPrice);
         document.getElementById('itemCancelBtn').addEventListener('click', resetItemForm);
 
-        // ============================================================
-        //  CSV IMPORT
-        // ============================================================
         document.getElementById('importCsvBtn').addEventListener('click', function() {
             document.getElementById('csvFileInput').click();
         });
@@ -1857,7 +1874,6 @@
                     }
 
                     const data = await getData();
-                    const adminId = localStorage.getItem('sms_admin_id') || 'admin_head';
                     if (!data.items) data.items = [];
                     if (!data.companies) data.companies = [];
 
@@ -1883,7 +1899,7 @@
                                 const newComp = {
                                     id: generateId(),
                                     name: company,
-                                    createdBy: adminId,
+                                    createdBy: currentAdminId,
                                     createdAt: new Date().toISOString()
                                 };
                                 data.companies.push(newComp);
@@ -1900,7 +1916,7 @@
                             boxPrice,
                             sellPriceCotton,
                             sellPriceBox,
-                            createdBy: adminId,
+                            createdBy: currentAdminId,
                             createdAt: new Date().toISOString(),
                             updatedBy: null,
                             updatedAt: null
@@ -1921,9 +1937,6 @@
             reader.readAsText(file);
         }
 
-        // ============================================================
-        //  PDF EXPORT
-        // ============================================================
         document.getElementById('exportPdfBtn').addEventListener('click', async function() {
             const data = await getData();
             if (!data.items || data.items.length === 0) {
@@ -1987,9 +2000,6 @@
             showToast('PDF exported successfully!');
         });
 
-        // ============================================================
-        //  SEARCH & FILTER
-        // ============================================================
         document.getElementById('itemSearch').addEventListener('input', renderItems);
         document.getElementById('companyFilter').addEventListener('change', renderItems);
         document.getElementById('clearSearchBtn').addEventListener('click', function() {
@@ -1997,9 +2007,6 @@
             renderItems();
         });
 
-        // ============================================================
-        //  VIEW TOGGLE
-        // ============================================================
         document.querySelectorAll('#viewToggle button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('#viewToggle button').forEach(b => b.classList.remove('active'));
@@ -2009,10 +2016,7 @@
             });
         });
 
-        // ============================================================
-        //  THEME
-        // ============================================================
-        function applyTheme(theme) {
+        async function applyTheme(theme) {
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 document.getElementById('themeIcon').className = 'fas fa-sun';
@@ -2022,19 +2026,24 @@
                 document.getElementById('themeIcon').className = 'fas fa-moon';
                 document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
             }
-            localStorage.setItem('sms_theme', theme);
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    await db.collection('users').doc(user.uid).update({ theme: theme });
+                }
+            } catch (e) {
+                console.warn('Could not save theme to Firestore:', e);
+            }
         }
 
-        function toggleTheme() {
-            const current = localStorage.getItem('sms_theme') || 'light';
-            applyTheme(current === 'dark' ? 'light' : 'dark');
+        async function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            await applyTheme(newTheme);
         }
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
-        // ============================================================
-        //  LANGUAGE
-        // ============================================================
         function setLanguage(lang) {
             currentLang = lang;
             document.body.classList.toggle('lang-urdu', lang === 'ur');
@@ -2065,7 +2074,7 @@
             document.querySelector('[data-key="cancel"]').textContent = t('cancel');
             document.querySelector('[data-key="all_items"]').textContent = t('all_items');
 
-            const theme = localStorage.getItem('sms_theme') || 'light';
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
             if (theme === 'dark') {
                 document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
             } else {
@@ -2081,9 +2090,6 @@
             });
         });
 
-        // ============================================================
-        //  TOAST
-        // ============================================================
         function showToast(msg) {
             const existing = document.querySelector('.toast-msg');
             if (existing) existing.remove();
@@ -2098,9 +2104,6 @@
             }, 3000);
         }
 
-        // ============================================================
-        //  SIDEBAR
-        // ============================================================
         function openSidebar() {
             document.getElementById('sidebar').classList.add('open');
             document.getElementById('sidebarOverlay').classList.add('active');
@@ -2118,9 +2121,6 @@
             if (window.innerWidth > 992) closeSidebar();
         });
 
-        // ============================================================
-        //  MODAL
-        // ============================================================
         function openModal(title, bodyHtml) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').innerHTML = bodyHtml;
@@ -2136,44 +2136,14 @@
             if (e.target === this) closeModal();
         });
 
-        // ============================================================
-        //  LOGOUT
-        // ============================================================
         document.getElementById('logoutBtn').addEventListener('click', async function() {
             try {
                 await auth.signOut();
             } catch (e) { console.warn('Sign out error:', e); }
-            localStorage.removeItem('sms_logged_in');
-            localStorage.removeItem('sms_admin_name');
-            localStorage.removeItem('sms_admin_role');
-            localStorage.removeItem('sms_admin_id');
-            localStorage.removeItem('sms_admin_permissions');
-            localStorage.removeItem('sms_firebase_uid');
             window.location.href = 'index.html';
         });
 
-        // ============================================================
-        //  INIT
-        // ============================================================
-        const savedTheme = localStorage.getItem('sms_theme') || 'light';
-        applyTheme(savedTheme);
-
-        const adminName = localStorage.getItem('sms_admin_name') || 'Head';
-        const adminRole = localStorage.getItem('sms_admin_role') || 'head';
-        document.getElementById('sidebarAvatar').textContent = adminName.charAt(0).toUpperCase();
-        document.getElementById('sidebarName').textContent = adminName;
-        document.getElementById('sidebarRole').textContent = adminRole === 'head' ? t('role_head') : t('role_sub');
-        document.getElementById('welcomeName').textContent = adminName;
-
-        if (adminRole !== 'head') {
-            document.getElementById('navAdmins').style.display = 'none';
-        }
-
-        renderItems();
-
-        console.log('📦 Items page loaded with Firebase integration.');
-        console.log('👤 Logged in as:', adminName);
-        console.log('📌 Make sure to replace firebaseConfig with your own credentials.');
+        console.log('📦 Items page loaded with Firebase-Only (NO localStorage).');
     </script>
 
 </body>
