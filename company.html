@@ -1,1461 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>Company - Shop Management System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
-        /* ===== Same styles as items.html ===== */
-        :root {
-            --primary: #1B2A4A;
-            --primary-light: #2C3E6B;
-            --primary-dark: #0D1A2D;
-            --secondary: #4A90D9;
-            --accent: #F5A623;
-            --accent-hover: #D48E1A;
-            --success: #27AE60;
-            --danger: #E74C3C;
-            --danger-hover: #C0392B;
-            --bg: #F0F4F8;
-            --card: #FFFFFF;
-            --text: #2C3E50;
-            --text-light: #7F8C8D;
-            --border: #E1E8ED;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --radius: 12px;
-            --radius-sm: 6px;
-            --transition: 0.25s ease;
-            --sidebar-width: 240px;
-            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            --input-bg: #fff;
-            --card-hover: rgba(74, 144, 217, 0.04);
-            --modal-bg: rgba(0, 0, 0, 0.5);
-            --toast-bg: var(--primary);
-            --toast-text: #fff;
-            --border-light: rgba(0, 0, 0, 0.06);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Management - Shop Management System</title>
+  <!-- Google Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        [data-theme="dark"] {
-            --bg: #121826;
-            --card: #1E2638;
-            --text: #E8EDF5;
-            --text-light: #9AA8C7;
-            --border: #2D3748;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            --input-bg: #252F44;
-            --card-hover: rgba(74, 144, 217, 0.08);
-            --modal-bg: rgba(0, 0, 0, 0.7);
-            --toast-bg: #2C3E6B;
-            --toast-text: #fff;
-            --border-light: rgba(255, 255, 255, 0.06);
-            --primary: #5A7FC0;
-            --primary-light: #6F92D0;
-            --primary-dark: #3A5A8A;
-        }
+  <style>
+    :root {
+      --primary-color: #1e3a8a;
+      --primary-hover: #1e40af;
+      --secondary-color: #0f172a;
+      --bg-color: #f8fafc;
+      --surface-color: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --danger-color: #ef4444;
+      --sidebar-width: 260px;
+      --header-height: 64px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
 
-        [data-theme="dark"] .sidebar {
-            background: #0E1525;
-        }
-        [data-theme="dark"] .sidebar-brand {
-            border-bottom-color: rgba(255, 255, 255, 0.06);
-        }
-        [data-theme="dark"] .sidebar-footer {
-            border-top-color: rgba(255, 255, 255, 0.06);
-        }
-        [data-theme="dark"] .topbar {
-            background: var(--card);
-            border-bottom-color: var(--border);
-        }
-        [data-theme="dark"] input,
-        [data-theme="dark"] select {
-            background: var(--input-bg);
-            color: var(--text);
-            border-color: var(--border);
-        }
-        [data-theme="dark"] input:focus,
-        [data-theme="dark"] select:focus {
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.25);
-        }
-        [data-theme="dark"] .card {
-            border-color: var(--border);
-        }
-        [data-theme="dark"] .company-chip {
-            background: var(--card);
-            border-color: var(--border);
-        }
-        [data-theme="dark"] .company-chip:hover {
-            border-color: var(--secondary);
-        }
-        [data-theme="dark"] .sidebar-toggle {
-            background: var(--primary);
-            color: #fff;
-        }
-        [data-theme="dark"] .sidebar-toggle:hover {
-            background: var(--primary-light);
-        }
-        [data-theme="dark"] .toast-msg {
-            background: var(--toast-bg);
-            color: var(--toast-text);
-        }
-        [data-theme="dark"] .card-header h3 {
-            color: var(--text);
-        }
-        [data-theme="dark"] .card-header h3 i {
-            color: var(--accent);
-        }
-        [data-theme="dark"] .page-title h2 {
-            color: var(--text);
-        }
-        [data-theme="dark"] .page-title h2 i {
-            color: var(--accent);
-        }
-        [data-theme="dark"] .welcome-text {
-            color: var(--text);
-        }
-        [data-theme="dark"] .welcome-text span {
-            color: var(--secondary);
-        }
-        [data-theme="dark"] .topbar .topbar-actions .lang-toggle {
-            background: var(--bg);
-            border-color: var(--border);
-        }
-        [data-theme="dark"] .topbar .topbar-actions .lang-toggle button {
-            color: var(--text-light);
-        }
-        [data-theme="dark"] .topbar .topbar-actions .lang-toggle button.active {
-            background: var(--primary);
-            color: #fff;
-        }
-        [data-theme="dark"] .topbar .topbar-actions .lang-toggle button:hover:not(.active) {
-            color: var(--text);
-        }
-        [data-theme="dark"] .sidebar-nav a {
-            color: rgba(255, 255, 255, 0.6);
-        }
-        [data-theme="dark"] .sidebar-nav a:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-        }
-        [data-theme="dark"] .sidebar-nav a.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-        [data-theme="dark"] .empty-state {
-            color: var(--text-light);
-        }
-        [data-theme="dark"] .empty-state h4 {
-            color: var(--text);
-        }
-        [data-theme="dark"] .text-muted {
-            color: var(--text-light);
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            transition: background 0.3s, color 0.3s;
-        }
-        a {
-            color: var(--secondary);
-            text-decoration: none;
-        }
-        button {
-            cursor: pointer;
-            font-family: inherit;
-            font-size: inherit;
-            border: none;
-            background: none;
-            outline: none;
-        }
-        input,
-        select {
-            font-family: inherit;
-            font-size: inherit;
-            outline: none;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 10px 14px;
-            background: var(--input-bg);
-            width: 100%;
-            transition: var(--transition);
-            color: var(--text);
-        }
-        input:focus,
-        select:focus {
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2);
-        }
-        input::placeholder {
-            color: var(--text-light);
-            opacity: 0.7;
-        }
-        select {
-            appearance: auto;
-            cursor: pointer;
-        }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
 
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--secondary);
-            border-radius: 8px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-light);
-        }
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width); background-color: var(--secondary-color); color: #fff;
+      height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s ease; display: flex; flex-direction: column;
+    }
+    .sidebar-brand { height: var(--header-height); display: flex; align-items: center; padding: 0 20px; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand i { font-size: 1.5rem; color: #3b82f6; }
+    .sidebar-brand h2 { font-size: 1.1rem; font-weight: 700; }
+    .sidebar-menu { list-style: none; padding: 20px 0; flex: 1; overflow-y: auto; }
+    .nav-link { display: flex; align-items: center; gap: 14px; padding: 12px 20px; color: #94a3b8; text-decoration: none; font-size: 0.95rem; font-weight: 500; }
+    .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,255,255,0.08); border-left: 4px solid #3b82f6; }
+    .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .btn-logout { width: 100%; padding: 10px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--primary);
-            color: #fff;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            overflow-y: auto;
-            z-index: 100;
-            transition: background 0.3s;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
-        }
-        .sidebar-brand {
-            padding: 20px 22px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .sidebar-brand i {
-            font-size: 26px;
-            color: var(--accent);
-        }
-        .sidebar-brand span {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
-        .sidebar-brand small {
-            font-size: 11px;
-            font-weight: 400;
-            opacity: 0.7;
-            display: block;
-            margin-top: -2px;
-        }
-        .sidebar-nav {
-            flex: 1;
-            padding: 16px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 11px 16px;
-            border-radius: var(--radius-sm);
-            color: rgba(255, 255, 255, 0.7);
-            transition: var(--transition);
-            font-weight: 500;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            text-align: left;
-        }
-        .sidebar-nav a i {
-            width: 20px;
-            font-size: 16px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        .sidebar-nav a:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-        .sidebar-nav a.active {
-            background: rgba(255, 255, 255, 0.14);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .sidebar-nav a.active i {
-            color: var(--accent);
-        }
-        .sidebar-footer {
-            padding: 16px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            flex-shrink: 0;
-        }
-        .sidebar-footer .user-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        .sidebar-footer .user-card .avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--primary);
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-        .sidebar-footer .user-card .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .sidebar-footer .user-card .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .sidebar-footer .user-card .user-info .name {
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .sidebar-footer .user-card .user-info .role {
-            font-size: 11px;
-            opacity: 0.6;
-        }
-        .sidebar-footer .logout-btn {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 18px;
-            padding: 6px 8px;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-        .sidebar-footer .logout-btn:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.08);
-        }
+    /* Main Layout */
+    .main-wrapper { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); min-height: 100vh; display: flex; flex-direction: column; }
 
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 12px;
-            left: 12px;
-            z-index: 200;
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            font-size: 20px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .sidebar-toggle:hover {
-            background: var(--primary-light);
-        }
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 99;
-            backdrop-filter: blur(2px);
-        }
+    /* Top Header */
+    .top-header { height: var(--header-height); background: var(--surface-color); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 900; }
+    .hamburger-btn { background: none; border: none; font-size: 1.3rem; color: var(--text-main); cursor: pointer; display: none; }
 
-        .main-content {
-            flex: 1;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-        .topbar {
-            background: var(--card);
-            padding: 16px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            gap: 12px;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .topbar .page-title h2 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary);
-            transition: color 0.3s;
-        }
-        .topbar .page-title h2 i {
-            color: var(--accent);
-            margin-right: 8px;
-        }
-        .topbar .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .topbar .topbar-actions .lang-toggle {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--bg);
-            padding: 4px 6px;
-            border-radius: 30px;
-            border: 1px solid var(--border);
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .topbar .topbar-actions .lang-toggle button {
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 12px;
-            transition: var(--transition);
-            border: none;
-            background: none;
-            color: var(--text-light);
-            cursor: pointer;
-        }
-        .topbar .topbar-actions .lang-toggle button.active {
-            background: var(--primary);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(27, 42, 74, 0.2);
-        }
-        .topbar .topbar-actions .lang-toggle button:hover:not(.active) {
-            color: var(--primary);
-        }
-        .topbar .topbar-actions .theme-toggle {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--bg);
-            padding: 4px 12px;
-            border-radius: 30px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            transition: background 0.3s, border-color 0.3s;
-            font-size: 13px;
-            color: var(--text-light);
-            font-weight: 600;
-        }
-        .topbar .topbar-actions .theme-toggle:hover {
-            border-color: var(--secondary);
-        }
-        .topbar .topbar-actions .theme-toggle i {
-            font-size: 16px;
-            transition: color 0.3s;
-        }
-        .topbar .topbar-actions .welcome-text {
-            font-weight: 500;
-            color: var(--text);
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-        .topbar .topbar-actions .welcome-text span {
-            color: var(--primary);
-            font-weight: 700;
-            transition: color 0.3s;
-        }
-        .content-area {
-            flex: 1;
-            padding: 24px 28px 40px;
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-        }
+    /* Content Area */
+    .content-area { padding: 24px; flex: 1; }
+    .page-title-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    .page-title-bar h1 { font-size: 1.5rem; font-weight: 700; }
 
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 24px 28px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border-light);
-            transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-        .card-header h3 {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--primary);
-            transition: color 0.3s;
-        }
-        .card-header h3 i {
-            color: var(--accent);
-            margin-right: 8px;
-        }
+    /* Buttons */
+    .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s ease; }
+    .btn-primary { background: var(--primary-color); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #e2e8f0; color: #0f172a; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-danger { background: var(--danger-color); color: #fff; }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 20px;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            font-size: 13px;
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background: var(--primary-light);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(27, 42, 74, 0.2);
-        }
-        .btn-secondary {
-            background: var(--secondary);
-            color: #fff;
-        }
-        .btn-secondary:hover {
-            background: #3A7BC8;
-            transform: translateY(-1px);
-        }
-        .btn-danger {
-            background: var(--danger);
-            color: #fff;
-        }
-        .btn-danger:hover {
-            background: var(--danger-hover);
-            transform: translateY(-1px);
-        }
-        .btn-outline {
-            background: transparent;
-            color: var(--primary);
-            border: 1.5px solid var(--border);
-        }
-        .btn-outline:hover {
-            background: var(--bg);
-            border-color: var(--primary);
-        }
-        .btn-sm {
-            padding: 6px 14px;
-            font-size: 12px;
-        }
-        .btn-xs {
-            padding: 4px 10px;
-            font-size: 11px;
-            border-radius: 4px;
-        }
+    /* Search Input */
+    .filter-card { background: var(--surface-color); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px; }
+    .search-input { border: 1.5px solid var(--border-color); padding: 10px 14px; border-radius: 8px; outline: none; font-size: 0.9rem; width: 100%; }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .form-row .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .form-row .form-group label {
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--primary);
-            transition: color 0.3s;
-        }
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
+    /* Clean Simple Table */
+    .company-table-container { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th, td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
+    th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
 
-        .company-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 12px;
-        }
-        .company-grid .company-chip {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: var(--transition);
-        }
-        .company-grid .company-chip:hover {
-            border-color: var(--secondary);
-            box-shadow: var(--shadow);
-        }
-        .company-grid .company-chip .name {
-            font-weight: 600;
-        }
-        .company-grid .company-chip .actions {
-            display: flex;
-            gap: 4px;
-        }
+    /* Modal Overlay */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.6); z-index: 1200; display: none; justify-content: center; align-items: center; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: #fff; width: 100%; max-width: 450px; border-radius: 16px; box-shadow: var(--shadow-md); padding: 24px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 8px; outline: none; font-size: 0.9rem; }
+    
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-light);
-        }
-        .empty-state i {
-            font-size: 48px;
-            opacity: 0.3;
-            margin-bottom: 12px;
-        }
-        .empty-state h4 {
-            font-size: 18px;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: var(--modal-bg);
-            z-index: 300;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(4px);
-        }
-        .modal-overlay.active {
-            display: flex;
-        }
-        .modal-box {
-            background: var(--card);
-            border-radius: var(--radius);
-            max-width: 620px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 32px 36px;
-            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
-            animation: modalIn 0.25s ease;
-        }
-        @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-        .modal-box .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .modal-box .modal-header h3 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        .modal-box .modal-header .close-btn {
-            font-size: 24px;
-            color: var(--text-light);
-            cursor: pointer;
-            transition: var(--transition);
-            background: none;
-            border: none;
-            padding: 4px 8px;
-        }
-        .modal-box .modal-header .close-btn:hover {
-            color: var(--danger);
-            transform: rotate(90deg);
-        }
-        .modal-box .modal-body {
-            padding: 4px 0;
-        }
-
-        .text-muted {
-            color: var(--text-light);
-        }
-        .lang-urdu {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
-        }
-        .lang-urdu .sidebar-nav a {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
-        }
-        .lang-urdu .topbar .page-title h2 {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
-        }
-        .lang-urdu .card-header h3 {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
-        }
-        .lang-urdu .btn {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
-        }
-        .lang-urdu input,
-        .lang-urdu select,
-        .lang-urdu label {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
-        }
-        .lang-urdu .sidebar-brand span {
-            font-family: 'Noto Nastaliq Urdu', 'Urdu Typesetting', 'Alvi Lahori', serif;
-        }
-
-        .toast-msg {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--toast-bg);
-            color: var(--toast-text);
-            padding: 14px 28px;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            z-index: 500;
-            max-width: 90%;
-            text-align: center;
-            animation: fadeIn 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 992px) {
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                transform: translateX(-100%);
-                height: 100vh;
-                width: 280px;
-                z-index: 150;
-                box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2);
-                border-radius: 0;
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .sidebar-overlay.active {
-                display: block;
-            }
-            .sidebar-toggle {
-                display: flex;
-            }
-            .topbar {
-                padding: 12px 16px 12px 60px;
-            }
-            .content-area {
-                padding: 16px;
-            }
-            .card {
-                padding: 18px 16px;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            .company-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        @media (max-width: 480px) {
-            .topbar {
-                padding: 10px 12px 10px 52px;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            .topbar .topbar-actions {
-                justify-content: space-between;
-                flex-wrap: wrap;
-            }
-            .topbar .page-title h2 {
-                font-size: 15px;
-            }
-            .card {
-                padding: 14px 12px;
-            }
-            .content-area {
-                padding: 10px;
-            }
-            .modal-box {
-                padding: 18px 14px;
-            }
-            .btn {
-                padding: 7px 14px;
-                font-size: 12px;
-            }
-            .company-grid {
-                grid-template-columns: 1fr;
-            }
-            .form-actions {
-                flex-direction: column;
-            }
-            .form-actions .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            .topbar .topbar-actions .theme-toggle {
-                padding: 4px 10px;
-                font-size: 12px;
-            }
-            .topbar .topbar-actions .theme-toggle i {
-                font-size: 14px;
-            }
-        }
-    </style>
+    @media (max-width: 992px) {
+      .hamburger-btn { display: block; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0) !important; }
+      .main-wrapper { margin: 0; width: 100%; }
+      .sidebar-overlay.active { display: block; }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar Toggle -->
-    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <i class="fas fa-store-alt"></i>
-            <div>
-                <span>SMS</span>
-                <small>Shop Management</small>
-            </div>
-        </div>
-        <nav class="sidebar-nav" id="sidebarNav">
-            <a href="dashboard.html"><i class="fas fa-th-large"></i> <span data-key="nav_dashboard">Dashboard</span></a>
-            <a href="items.html"><i class="fas fa-boxes"></i> <span data-key="nav_items">Items</span></a>
-            <a href="company.html" class="active"><i class="fas fa-building"></i> <span data-key="nav_company">Company</span></a>
-            <a href="admins.html" id="navAdmins"><i class="fas fa-users-cog"></i> <span data-key="nav_admins">Admins</span></a>
-            <a href="profile.html"><i class="fas fa-user"></i> <span data-key="nav_profile">Profile</span></a>
-            <a href="recent-activity.html"><i class="fas fa-clock"></i> <span data-key="nav_activity">Recent Activity</span></a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-card">
-                <div class="avatar" id="sidebarAvatar">H</div>
-                <div class="user-info">
-                    <div class="name" id="sidebarName">Head</div>
-                    <div class="role" id="sidebarRole">Head Admin</div>
-                </div>
-                <button class="logout-btn" id="logoutBtn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
-        </div>
-    </aside>
-
-    <!-- ===== MAIN CONTENT ===== -->
-    <main class="main-content">
-        <header class="topbar">
-            <div class="page-title">
-                <h2 id="pageTitle"><i class="fas fa-building"></i> <span data-key="title_company">Company</span></h2>
-            </div>
-            <div class="topbar-actions">
-                <div class="theme-toggle" id="themeToggle" title="Toggle Dark/Light mode">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                    <span id="themeLabel">Dark</span>
-                </div>
-                <div class="lang-toggle">
-                    <button class="active" data-lang="en">EN</button>
-                    <button data-lang="ur">UR</button>
-                </div>
-                <div class="welcome-text">Welcome, <span id="welcomeName">Head</span></div>
-            </div>
-        </header>
-
-        <div class="content-area">
-
-            <!-- Add Company -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-plus-circle"></i> <span data-key="add_company">Add Company</span></h3>
-                </div>
-                <form id="companyForm">
-                    <input type="hidden" id="companyEditId" value="" />
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="companyName"><span data-key="company_name">Company Name</span> *</label>
-                            <input type="text" id="companyName" placeholder="Enter company name" required />
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="companySubmitBtn"><i class="fas fa-save"></i> <span data-key="save_company">Save Company</span></button>
-                        <button type="button" class="btn btn-outline" id="companyCancelBtn"><i class="fas fa-times"></i> <span data-key="cancel">Cancel</span></button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- All Companies -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-building"></i> <span data-key="all_companies">All Companies</span></h3>
-                </div>
-                <div id="companiesListContainer">
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <h4>Loading companies...</h4>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Modal -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 id="modalTitle">Modal</h3>
-                <button class="close-btn" id="modalCloseBtn">&times;</button>
-            </div>
-            <div class="modal-body" id="modalBody"></div>
-        </div>
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-boxes-packing"></i>
+      <h2>SMS Portal</h2>
     </div>
+    <ul class="sidebar-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></a></li>
+      <li class="nav-item"><a href="items.html" class="nav-link"><i class="fa-solid fa-box"></i><span>Items</span></a></li>
+      <li class="nav-item"><a href="company.html" class="nav-link active"><i class="fa-solid fa-building"></i><span>Company</span></a></li>
+      <li class="nav-item"><a href="admins.html" class="nav-link"><i class="fa-solid fa-users-gear"></i><span>Admins</span></a></li>
+      <li class="nav-item"><a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear"></i><span>Profile</span></a></li>
+      <li class="nav-item"><a href="recent_activity.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Recent Activity</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span>Sign Out</span></button>
+    </div>
+  </aside>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
-    </script>
+  <div class="main-wrapper">
+    <!-- Top Header -->
+    <header class="top-header">
+      <button class="hamburger-btn" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></button>
+      <div style="font-weight:600; font-size:0.9rem;" id="navAdminName">Admin</div>
+    </header>
 
-    <script>
-        // ============================================================
-        //  FIREBASE CONFIG - REPLACE WITH YOUR OWN
-        // ============================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyB0RN2WGrPNLOxFMzOEjEITwAejZrzhWvE",
-            authDomain: "shop-m-system.firebaseapp.com",
-            projectId: "shop-m-system",
-            storageBucket: "shop-m-system.firebasestorage.app",
-            messagingSenderId: "1037445605212",
-            appId: "1:1037445605212:web:b0420a71036fb525f30399",
-            measurementId: "G-X0203129L3"
-        };
+    <main class="content-area">
+      <!-- Title & Add Button -->
+      <div class="page-title-bar">
+        <h1>Company Directory</h1>
+        <button class="btn btn-primary" id="openAddCompanyBtn"><i class="fa-solid fa-plus"></i> Add Company</button>
+      </div>
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+      <!-- Search Input -->
+      <div class="filter-card">
+        <input type="text" class="search-input" id="searchInput" placeholder="Type here to search company name..." autocomplete="off">
+      </div>
 
-        // ============================================================
-        //  CHECK LOGIN - NO localStorage
-        // ============================================================
-        let currentAdmin = null;
-        let currentAdminId = null;
+      <!-- Render Companies Table -->
+      <div id="companiesContainer"></div>
+    </main>
+  </div>
 
-        auth.onAuthStateChanged(async function(user) {
-            if (!user) {
-                window.location.href = 'index.html';
-                return;
-            }
+  <!-- SIMPLE ADD / EDIT COMPANY MODAL -->
+  <div class="modal-overlay" id="companyModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Add New Company</h3>
+        <i class="fa-solid fa-xmark" id="closeModalBtn" style="cursor:pointer; font-size:1.2rem;"></i>
+      </div>
+      <form id="companyForm">
+        <input type="hidden" id="companyId">
+        <div class="form-group">
+          <label>Company Name *</label>
+          <input type="text" class="form-control" id="companyName" required placeholder="e.g. Nestlé Foods">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveCompanyBtn">Save Company</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-            try {
-                const snapshot = await db.collection('admins').get();
-                let found = false;
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.username === 'sms.user' || data.email === user.email) {
-                        currentAdmin = data;
-                        currentAdminId = doc.id;
-                        found = true;
-                    }
-                });
+  <!-- FIREBASE ENGINE SCRIPT -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-                if (!found) {
-                    const headSnapshot = await db.collection('admins').doc('admin_head').get();
-                    if (headSnapshot.exists) {
-                        currentAdmin = headSnapshot.data();
-                        currentAdminId = 'admin_head';
-                        found = true;
-                    }
-                }
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
+    authDomain: "laghari-shop.firebaseapp.com",
+databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
+    projectId: "laghari-shop",
+    storageBucket: "laghari-shop.firebasestorage.app",
+    messagingSenderId: "250908303863",
+    appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
+  };
 
-                if (!found) {
-                    await auth.signOut();
-                    window.location.href = 'index.html';
-                    return;
-                }
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-                updateSidebar(currentAdmin);
-                renderCompanies();
+    let activeAdmin = null;
+    let rawCompaniesData = [];
 
-            } catch (error) {
-                console.error('Error checking admin:', error);
-                window.location.href = 'index.html';
-            }
-        });
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const navAdminName = document.getElementById('navAdminName');
 
-        // ============================================================
-        //  HELPERS
-        // ============================================================
-        function generateId() {
-            return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    const companiesContainer = document.getElementById('companiesContainer');
+    const searchInput = document.getElementById('searchInput');
+
+    const companyModal = document.getElementById('companyModal');
+    const openAddCompanyBtn = document.getElementById('openAddCompanyBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const companyForm = document.getElementById('companyForm');
+
+    // Drawer Controls
+    hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
+    sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
+
+    // Verify Session
+    async function verifyAuth() {
+      try {
+        const snap = await get(ref(db, 'active_session'));
+        if (!snap.exists()) { window.location.replace('index.html'); return; }
+        const session = snap.val();
+        const adminSnap = await get(ref(db, `admins/${session.userId}`));
+        if (adminSnap.exists()) {
+          activeAdmin = adminSnap.val();
+          navAdminName.textContent = activeAdmin.name;
+        } else { window.location.replace('index.html'); }
+      } catch (err) { console.error("Auth Error:", err); }
+    }
+
+    // Sync Companies Data A-Z
+    function syncCompaniesData() {
+      onValue(ref(db, 'companies'), (snap) => {
+        rawCompaniesData = [];
+        if (snap.exists()) {
+          const data = snap.val();
+          for (let key in data) {
+            rawCompaniesData.push({ id: key, ...data[key] });
+          }
+          rawCompaniesData.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
         }
+        renderCompanies();
+      });
+    }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>"]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                if (m === '"') return '&quot;';
-                return m;
-            });
+    // Render Clean Table View
+    function renderCompanies() {
+      const query = searchInput.value.toLowerCase().trim();
+      const filtered = rawCompaniesData.filter(comp => comp.name.toLowerCase().includes(query));
+
+      if (filtered.length === 0) {
+        companiesContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">No companies found.</div>`;
+        return;
+      }
+
+      let tableHtml = `
+        <div class="company-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Company Name</th>
+                <th style="width: 150px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      filtered.forEach(comp => {
+        tableHtml += `
+          <tr>
+            <td><strong>${comp.name}</strong></td>
+            <td>
+              <button class="btn btn-secondary" onclick="window.editCompany('${comp.id}')" style="padding:4px 8px;"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn btn-danger" onclick="window.deleteCompany('${comp.id}', '${comp.name}')" style="padding:4px 8px;"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+      tableHtml += `</tbody></table></div>`;
+      companiesContainer.innerHTML = tableHtml;
+    }
+
+    searchInput.addEventListener('input', renderCompanies);
+
+    // Modal Control Logic
+    openAddCompanyBtn.addEventListener('click', () => {
+      companyForm.reset();
+      document.getElementById('companyId').value = '';
+      document.getElementById('modalTitle').textContent = 'Add New Company';
+      companyModal.classList.add('active');
+    });
+    closeModalBtn.addEventListener('click', () => companyModal.classList.remove('active'));
+    cancelModalBtn.addEventListener('click', () => companyModal.classList.remove('active'));
+
+    // Save Name Only
+    companyForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('companyId').value;
+      const name = document.getElementById('companyName').value.trim();
+      const adminName = activeAdmin ? activeAdmin.name : 'SMS Admin';
+
+      try {
+        if (id) {
+          await set(ref(db, `companies/${id}`), { name, updatedAt: new Date().toISOString(), updatedBy: adminName });
+          await logActivity('EDIT', `Updated company name to "${name}".`, adminName);
+        } else {
+          await push(ref(db, 'companies'), { name, createdAt: new Date().toISOString(), createdBy: adminName });
+          await logActivity('ADD', `Created new company "${name}".`, adminName);
         }
+        companyModal.classList.remove('active');
+      } catch (err) { alert('Operation failed: ' + err.message); }
+    });
 
-        function hasPermission(permission) {
-            if (!currentAdmin) return false;
-            if (currentAdmin.role === 'head') return true;
-            if (currentAdmin.permissions && currentAdmin.permissions.all) return true;
-            if (currentAdmin.permissions && currentAdmin.permissions.functions) {
-                return currentAdmin.permissions.functions.includes(permission);
-            }
-            return false;
-        }
+    window.editCompany = (id) => {
+      const company = rawCompaniesData.find(c => c.id === id);
+      if (!company) return;
+      document.getElementById('companyId').value = company.id;
+      document.getElementById('companyName').value = company.name;
+      document.getElementById('modalTitle').textContent = 'Edit Company Name';
+      companyModal.classList.add('active');
+    };
 
-        function updateSidebar(admin) {
-            if (!admin) return;
-            const avatar = document.getElementById('sidebarAvatar');
-            avatar.textContent = admin.name.charAt(0).toUpperCase();
-            document.getElementById('sidebarName').textContent = admin.name;
-            document.getElementById('sidebarRole').textContent = admin.role === 'head' ? 'Head Admin' : 'Sub Admin';
-            document.getElementById('welcomeName').textContent = admin.name;
+    window.deleteCompany = async (id, name) => {
+      if (confirm(`Are you sure you want to delete "${name}"?`)) {
+        try {
+          await remove(ref(db, `companies/${id}`));
+          await logActivity('DELETE', `Deleted company "${name}".`, activeAdmin ? activeAdmin.name : 'Admin');
+        } catch (err) { alert('Delete failed: ' + err.message); }
+      }
+    };
 
-            if (admin.role !== 'head') {
-                document.getElementById('navAdmins').style.display = 'none';
-            }
-        }
+    async function logActivity(actionType, description, adminName) {
+      await push(ref(db, 'recent_activities'), { actionType, description, adminName, timestamp: new Date().toISOString() });
+    }
 
-        // ============================================================
-        //  FIREBASE DATA HELPERS
-        // ============================================================
-        async function getData() {
-            try {
-                const user = auth.currentUser;
-                if (!user) return { items: [], companies: [], activities: [], admins: [] };
-                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
-                const doc = await docRef.get();
-                if (doc.exists) {
-                    return doc.data();
-                }
-                return { items: [], companies: [], activities: [], admins: [] };
-            } catch (error) {
-                console.error('Error getting data:', error);
-                return { items: [], companies: [], activities: [], admins: [] };
-            }
-        }
+    logoutBtn.addEventListener('click', async () => {
+      await remove(ref(db, 'active_session'));
+      window.location.replace('index.html');
+    });
 
-        async function saveData(data) {
-            try {
-                const user = auth.currentUser;
-                if (!user) return false;
-                const docRef = db.collection('users').doc(user.uid).collection('data').doc('appData');
-                await docRef.set(data, { merge: true });
-                return true;
-            } catch (error) {
-                console.error('Error saving data:', error);
-                return false;
-            }
-        }
-
-        async function addActivity(data, action, details) {
-            if (!currentAdmin) return;
-            if (!data.activities) data.activities = [];
-            data.activities.unshift({
-                id: generateId(),
-                action: action,
-                adminId: currentAdminId,
-                adminName: currentAdmin.name,
-                details: details,
-                timestamp: new Date().toISOString()
-            });
-            if (data.activities.length > 500) data.activities = data.activities.slice(0, 500);
-            await saveData(data);
-        }
-
-        // ============================================================
-        //  TRANSLATIONS
-        // ============================================================
-        const TRANSLATIONS = {
-            en: {
-                nav_dashboard: 'Dashboard',
-                nav_items: 'Items',
-                nav_company: 'Company',
-                nav_admins: 'Admins',
-                nav_profile: 'Profile',
-                nav_activity: 'Recent Activity',
-                title_company: 'Company',
-                add_company: 'Add Company',
-                company_name: 'Company Name',
-                save_company: 'Save Company',
-                cancel: 'Cancel',
-                all_companies: 'All Companies',
-                edit: 'Edit',
-                delete: 'Delete',
-                no_companies: 'No companies added yet.',
-                update: 'Update',
-                role_head: 'Head Admin',
-                role_sub: 'Sub Admin',
-                dark_mode: 'Dark',
-                light_mode: 'Light',
-                confirm_delete_company: 'Are you sure you want to delete this company?',
-            },
-            ur: {
-                nav_dashboard: 'ڈیش بورڈ',
-                nav_items: 'اشیا',
-                nav_company: 'کمپنی',
-                nav_admins: 'منتظمین',
-                nav_profile: 'پروفائل',
-                nav_activity: 'حالیہ سرگرمیاں',
-                title_company: 'کمپنی',
-                add_company: 'کمپنی شامل کریں',
-                company_name: 'کمپنی کا نام',
-                save_company: 'کمپنی محفوظ کریں',
-                cancel: 'منسوخ',
-                all_companies: 'تمام کمپنیاں',
-                edit: 'ترمیم',
-                delete: 'حذف',
-                no_companies: 'ابھی تک کوئی کمپنی شامل نہیں۔',
-                update: 'اپ ڈیٹ',
-                role_head: 'ہیڈ منتظم',
-                role_sub: 'ذیلی منتظم',
-                dark_mode: 'تاریک',
-                light_mode: 'روشن',
-                confirm_delete_company: 'کیا آپ واقعی اس کمپنی کو حذف کرنا چاہتے ہیں؟',
-            }
-        };
-
-        let currentLang = 'en';
-
-        function t(key) {
-            return TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key] ? TRANSLATIONS[currentLang][key] : key;
-        }
-
-        // ============================================================
-        //  RENDER COMPANIES
-        // ============================================================
-        async function renderCompanies() {
-            const container = document.getElementById('companiesListContainer');
-            try {
-                const data = await getData();
-                const companies = [...(data.companies || [])].sort((a, b) => a.name.localeCompare(b.name));
-
-                if (companies.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-building"></i>
-                            <h4>${t('no_companies')}</h4>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let html = '<div class="company-grid">';
-                companies.forEach(c => {
-                    html += `
-                        <div class="company-chip">
-                            <span class="name">${escapeHtml(c.name)}</span>
-                            <div class="actions">
-                                ${hasPermission('edit_company') ? `<button class="btn btn-secondary btn-xs edit-company-btn" data-id="${c.id}"><i class="fas fa-edit"></i></button>` : ''}
-                                ${hasPermission('delete_company') ? `<button class="btn btn-danger btn-xs delete-company-btn" data-id="${c.id}"><i class="fas fa-trash"></i></button>` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-
-                container.querySelectorAll('.edit-company-btn').forEach(btn => {
-                    btn.addEventListener('click', () => editCompany(btn.dataset.id));
-                });
-                container.querySelectorAll('.delete-company-btn').forEach(btn => {
-                    btn.addEventListener('click', () => deleteCompany(btn.dataset.id));
-                });
-
-            } catch (error) {
-                console.error('Error rendering companies:', error);
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <h4>Error loading companies</h4>
-                        <p>Please check your connection.</p>
-                    </div>
-                `;
-            }
-        }
-
-        // ============================================================
-        //  COMPANY CRUD
-        // ============================================================
-        document.getElementById('companyForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const data = await getData();
-            const id = document.getElementById('companyEditId').value;
-            const name = document.getElementById('companyName').value.trim();
-
-            if (!name) { alert('Company name is required.'); return; }
-
-            if (!data.companies) data.companies = [];
-
-            if (id) {
-                if (!hasPermission('edit_company')) {
-                    alert('You do not have permission to edit companies.');
-                    return;
-                }
-                const existing = data.companies.find(c => c.id === id);
-                if (!existing) { alert('Company not found.'); return; }
-                existing.name = name;
-                await saveData(data);
-                resetCompanyForm();
-                await renderCompanies();
-                showToast('Company updated successfully!');
-            } else {
-                if (!hasPermission('add_company')) {
-                    alert('You do not have permission to add companies.');
-                    return;
-                }
-                const newCompany = {
-                    id: generateId(),
-                    name,
-                    createdBy: currentAdminId,
-                    createdAt: new Date().toISOString()
-                };
-                data.companies.push(newCompany);
-                await addActivity(data, 'add_company', `added company: ${name}`);
-                await saveData(data);
-                resetCompanyForm();
-                await renderCompanies();
-                showToast('Company added successfully!');
-            }
-        });
-
-        function editCompany(id) {
-            getData().then(data => {
-                const company = data.companies.find(c => c.id === id);
-                if (!company) return;
-                if (!hasPermission('edit_company')) {
-                    alert('You do not have permission to edit companies.');
-                    return;
-                }
-                document.getElementById('companyEditId').value = id;
-                document.getElementById('companyName').value = company.name;
-                document.getElementById('companySubmitBtn').innerHTML = `<i class="fas fa-sync-alt"></i> ${t('update')}`;
-                document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
-            });
-        }
-
-        async function deleteCompany(id) {
-            const data = await getData();
-            const company = data.companies.find(c => c.id === id);
-            if (!company) return;
-            if (!hasPermission('delete_company')) {
-                alert('You do not have permission to delete companies.');
-                return;
-            }
-            if (!confirm(t('confirm_delete_company') + `\n"${company.name}"`)) return;
-            data.companies = data.companies.filter(c => c.id !== id);
-            await addActivity(data, 'delete_company', `deleted company: ${company.name}`);
-            await saveData(data);
-            await renderCompanies();
-            showToast('Company deleted successfully!');
-        }
-
-        function resetCompanyForm() {
-            document.getElementById('companyEditId').value = '';
-            document.getElementById('companyName').value = '';
-            document.getElementById('companySubmitBtn').innerHTML = `<i class="fas fa-save"></i> ${t('save_company')}`;
-        }
-
-        document.getElementById('companyCancelBtn').addEventListener('click', resetCompanyForm);
-
-        // ============================================================
-        //  THEME - Stored in Firestore
-        // ============================================================
-        async function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
-                document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                document.getElementById('themeIcon').className = 'fas fa-moon';
-                document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
-            }
-            try {
-                const user = auth.currentUser;
-                if (user) {
-                    await db.collection('users').doc(user.uid).update({ theme: theme });
-                }
-            } catch (e) {
-                console.warn('Could not save theme to Firestore:', e);
-            }
-        }
-
-        async function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') || 'light';
-            const newTheme = current === 'dark' ? 'light' : 'dark';
-            await applyTheme(newTheme);
-        }
-
-        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
-        // ============================================================
-        //  LANGUAGE
-        // ============================================================
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.body.classList.toggle('lang-urdu', lang === 'ur');
-            document.querySelectorAll('.lang-toggle button').forEach(b => {
-                b.classList.toggle('active', b.dataset.lang === lang);
-            });
-            applyLanguage();
-        }
-
-        function applyLanguage() {
-            const keys = ['nav_dashboard', 'nav_items', 'nav_company', 'nav_admins', 'nav_profile', 'nav_activity'];
-            keys.forEach(k => {
-                const el = document.querySelector(`[data-key="${k}"]`);
-                if (el) el.textContent = t(k);
-            });
-            document.querySelector('[data-key="title_company"]').textContent = t('title_company');
-            document.querySelector('[data-key="add_company"]').textContent = t('add_company');
-            document.querySelector('[data-key="company_name"]').textContent = t('company_name');
-            document.querySelector('[data-key="save_company"]').textContent = t('save_company');
-            document.querySelector('[data-key="cancel"]').textContent = t('cancel');
-            document.querySelector('[data-key="all_companies"]').textContent = t('all_companies');
-
-            const theme = document.documentElement.getAttribute('data-theme') || 'light';
-            if (theme === 'dark') {
-                document.getElementById('themeLabel').textContent = t('light_mode') || 'Light';
-            } else {
-                document.getElementById('themeLabel').textContent = t('dark_mode') || 'Dark';
-            }
-
-            renderCompanies();
-        }
-
-        document.querySelectorAll('.lang-toggle button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                setLanguage(this.dataset.lang);
-            });
-        });
-
-        // ============================================================
-        //  TOAST
-        // ============================================================
-        function showToast(msg) {
-            const existing = document.querySelector('.toast-msg');
-            if (existing) existing.remove();
-            const div = document.createElement('div');
-            div.className = 'toast-msg';
-            div.textContent = msg;
-            document.body.appendChild(div);
-            setTimeout(() => {
-                div.style.opacity = '0';
-                div.style.transition = 'opacity 0.4s';
-                setTimeout(() => div.remove(), 400);
-            }, 3000);
-        }
-
-        // ============================================================
-        //  SIDEBAR
-        // ============================================================
-        function openSidebar() {
-            document.getElementById('sidebar').classList.add('open');
-            document.getElementById('sidebarOverlay').classList.add('active');
-        }
-
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebarOverlay').classList.remove('active');
-        }
-
-        document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
-        document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 992) closeSidebar();
-        });
-
-        // ============================================================
-        //  MODAL
-        // ============================================================
-        function openModal(title, bodyHtml) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalBody').innerHTML = bodyHtml;
-            document.getElementById('modalOverlay').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-        }
-
-        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-        document.getElementById('modalOverlay').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-
-        // ============================================================
-        //  LOGOUT - NO localStorage
-        // ============================================================
-        document.getElementById('logoutBtn').addEventListener('click', async function() {
-            try {
-                await auth.signOut();
-            } catch (e) {
-                console.warn('Sign out error:', e);
-            }
-            window.location.href = 'index.html';
-        });
-
-        // ============================================================
-        //  INIT
-        // ============================================================
-        console.log('🏢 Company page loaded with Firebase-Only (NO localStorage).');
-    </script>
-
+    verifyAuth();
+    syncCompaniesData();
+  </script>
 </body>
 </html>

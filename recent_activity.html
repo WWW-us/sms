@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recent Activity - Shop Management System</title>
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-color: #1e3a8a;
+      --primary-hover: #1d4ed8;
+      --secondary-color: #0f172a;
+      --bg-color: #f8fafc;
+      --surface-color: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --danger-color: #ef4444;
+      --sidebar-width: 260px;
+      --header-height: 64px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
+
+    /* RTL Support for Urdu */
+    body.rtl { direction: rtl; text-align: right; }
+
+    /* Sidebar Layout */
+    .sidebar {
+      width: var(--sidebar-width); background-color: var(--secondary-color); color: #fff;
+      height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s ease; display: flex; flex-direction: column;
+    }
+    body.rtl .sidebar { left: auto; right: 0; }
+    .sidebar-brand { height: var(--header-height); display: flex; align-items: center; padding: 0 20px; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand i { font-size: 1.5rem; color: #3b82f6; }
+    .sidebar-brand h2 { font-size: 1.1rem; font-weight: 700; }
+    .sidebar-menu { list-style: none; padding: 20px 0; flex: 1; overflow-y: auto; }
+    .nav-link { display: flex; align-items: center; gap: 14px; padding: 12px 20px; color: #94a3b8; text-decoration: none; font-size: 0.95rem; font-weight: 500; }
+    .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,255,255,0.08); border-left: 4px solid #3b82f6; }
+    body.rtl .nav-link:hover, body.rtl .nav-link.active { border-left: none; border-right: 4px solid #3b82f6; }
+    .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .btn-logout { width: 100%; padding: 10px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    /* Content Wrapper */
+    .main-wrapper { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); min-height: 100vh; display: flex; flex-direction: column; }
+    body.rtl .main-wrapper { margin-left: 0; margin-right: var(--sidebar-width); }
+    .top-header { height: var(--header-height); background: var(--surface-color); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 900; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .hamburger-btn { background: none; border: none; font-size: 1.3rem; color: var(--text-main); cursor: pointer; display: none; }
+    .welcome-text { font-weight: 600; font-size: 0.95rem; }
+    .lang-toggle-btn { padding: 6px 12px; background: #e2e8f0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+
+    .content-area { padding: 24px; flex: 1; }
+
+    /* Header Controls & Filters */
+    .page-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .page-title-row h1 { font-size: 1.4rem; font-weight: 700; }
+
+    .btn-danger { background: var(--danger-color); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: none; align-items: center; gap: 8px; font-size: 0.85rem; }
+    .btn-danger:hover { background: #dc2626; }
+
+    .filter-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .search-box { flex: 1; min-width: 200px; position: relative; }
+    .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    body.rtl .search-box i { left: auto; right: 12px; }
+    .search-input { width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; }
+    body.rtl .search-input { padding: 8px 36px 8px 12px; }
+    .filter-select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; background: #fff; min-width: 160px; }
+
+    /* Custom Badge Colors */
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+    .badge-item { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; } /* GREEN */
+    .badge-profile { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; } /* RED */
+    .badge-admin { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; } /* YELLOW / ORANGE */
+    .badge-company { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; } /* PURPLE */
+    .badge-default { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; }
+
+    /* Activity Table */
+    .table-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow-sm); overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    body.rtl .data-table { text-align: right; }
+    .data-table th, .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+    .data-table th { background: #f1f5f9; font-weight: 600; color: var(--text-muted); }
+
+    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-weight: 500; }
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+
+    @media (max-width: 992px) {
+      .hamburger-btn { display: block; }
+      .sidebar { transform: translateX(-100%); }
+      body.rtl .sidebar { transform: translateX(100%); }
+      .sidebar.open { transform: translateX(0) !important; }
+      .main-wrapper { margin: 0 !important; width: 100%; }
+      .sidebar-overlay.active { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-boxes-packing"></i>
+      <h2>SMS Portal</h2>
+    </div>
+    <ul class="sidebar-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span data-i18n="navDashboard">Dashboard</span></a></li>
+      <li class="nav-item"><a href="items.html" class="nav-link"><i class="fa-solid fa-box"></i><span data-i18n="navItems">Items</span></a></li>
+      <li class="nav-item"><a href="company.html" class="nav-link"><i class="fa-solid fa-building"></i><span data-i18n="navCompany">Company</span></a></li>
+      <li class="nav-item"><a href="admins.html" class="nav-link"><i class="fa-solid fa-users-gear"></i><span data-i18n="navAdmins">Admins</span></a></li>
+      <li class="nav-item"><a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear"></i><span data-i18n="navProfile">Profile</span></a></li>
+      <li class="nav-item"><a href="recent_activity.html" class="nav-link active"><i class="fa-solid fa-clock-rotate-left"></i><span data-i18n="navActivity">Recent Activity</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span data-i18n="btnLogout">Sign Out</span></button>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="hamburger-btn" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></button>
+        <div class="welcome-text" id="welcomeAdmin">Welcome, Admin</div>
+      </div>
+      <button class="lang-toggle-btn" id="langToggleBtn"><i class="fa-solid fa-globe"></i> <span id="langText">Urdu</span></button>
+    </header>
+
+    <main class="content-area">
+      <div class="page-title-row">
+        <h1 data-i18n="pageTitle">Recent System Activity</h1>
+        <button class="btn-danger" id="btnClearLogs"><i class="fa-solid fa-trash-can"></i> <span data-i18n="btnClear">Clear Logs</span></button>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="filter-card">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search activity logs...">
+        </div>
+        
+        <select id="actionFilter" class="filter-select">
+          <option value="ALL">All Action Types</option>
+          <option value="ITEM_ACTION">Item Action</option>
+          <option value="PROFILE_UPDATE">Profile Update</option>
+          <option value="ADMIN_ACTION">Admin Action</option>
+          <option value="COMPANY_ACTION">Company Action</option>
+        </select>
+
+        <!-- Sub Filter Dropdown for Items (Add / Edit / Delete) -->
+        <select id="itemOperationFilter" class="filter-select" style="display: none;">
+          <option value="ALL">All Item Actions</option>
+          <option value="add">Add</option>
+          <option value="edit">Edit</option>
+          <option value="delete">Deleted</option>
+        </select>
+      </div>
+
+      <!-- Data Table -->
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th data-i18n="thTime">Date & Time</th>
+              <th data-i18n="thAdmin">Admin User</th>
+              <th data-i18n="thAction">Action Type</th>
+              <th data-i18n="thDesc">Description</th>
+            </tr>
+          </thead>
+          <tbody id="activityTbody">
+            <tr><td colspan="4" class="empty-state">Loading activity logs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- FIREBASE & LOGIC SCRIPT -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
+      authDomain: "laghari-shop.firebaseapp.com",
+      databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
+      projectId: "laghari-shop",
+      storageBucket: "laghari-shop.firebasestorage.app",
+      messagingSenderId: "250908303863",
+      appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let activeUserSession = null;
+    let allActivities = [];
+    let currentLang = 'en';
+
+    const i18n = {
+      en: {
+        navDashboard: "Dashboard", navItems: "Items", navCompany: "Company", navAdmins: "Admins",
+        navProfile: "Profile", navActivity: "Recent Activity", btnLogout: "Sign Out",
+        pageTitle: "Recent System Activity", btnClear: "Clear Logs",
+        thTime: "Date & Time", thAdmin: "Admin User", thAction: "Action Type", thDesc: "Description"
+      },
+      ur: {
+        navDashboard: "ڈیش بورڈ", navItems: "آئٹمز", navCompany: "کمپنی", navAdmins: "ایڈمنز",
+        navProfile: "پروفائل", navActivity: "حالیہ سرگرمی", btnLogout: "سائن آؤٹ",
+        pageTitle: "سسٹم کی حالیہ سرگرمی", btnClear: "لاگز صاف کریں",
+        thTime: "تاریخ اور وقت", thAdmin: "ایڈمن یوزر", thAction: "کارروائی کی قسم", thDesc: "تفصیل"
+      }
+    };
+
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const welcomeAdmin = document.getElementById('welcomeAdmin');
+    const langToggleBtn = document.getElementById('langToggleBtn');
+    const langText = document.getElementById('langText');
+    const activityTbody = document.getElementById('activityTbody');
+    const searchInput = document.getElementById('searchInput');
+    const actionFilter = document.getElementById('actionFilter');
+    const itemOperationFilter = document.getElementById('itemOperationFilter');
+    const btnClearLogs = document.getElementById('btnClearLogs');
+
+    // UI Responsiveness Toggles
+    hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
+    sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
+
+    // Language Toggle
+    langToggleBtn.addEventListener('click', () => {
+      currentLang = currentLang === 'en' ? 'ur' : 'en';
+      document.body.classList.toggle('rtl', currentLang === 'ur');
+      langText.textContent = currentLang === 'en' ? 'Urdu' : 'English';
+      applyTranslations();
+    });
+
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+      });
+    }
+
+    // Verify Session and Load Activity Logs
+    async function initPage() {
+      try {
+        const sessionSnap = await get(ref(db, 'active_session'));
+        if (!sessionSnap.exists()) { window.location.replace('index.html'); return; }
+
+        activeUserSession = sessionSnap.val();
+        welcomeAdmin.textContent = `Welcome, ${activeUserSession.name}`;
+
+        // Main Admin Privilege Check for "Clear Logs" button
+        const adminSnap = await get(ref(db, `admins/${activeUserSession.userId}`));
+        if (adminSnap.exists() && adminSnap.val().isMainAdmin) {
+          btnClearLogs.style.display = 'inline-flex';
+        }
+
+        // Real-time listener for activities
+        onValue(ref(db, 'recent_activities'), (snapshot) => {
+          allActivities = [];
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            Object.keys(data).forEach(key => {
+              allActivities.push({ id: key, ...data[key] });
+            });
+            // Order newest first
+            allActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          }
+          renderActivities();
+        });
+
+      } catch (err) {
+        activityTbody.innerHTML = `<tr><td colspan="4" class="empty-state">Error loading logs: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Helper: Format Date strictly to DD/MM/YYYY
+    function formatDateDDMMYYYY(timestamp) {
+      if (!timestamp) return '-';
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return timestamp;
+
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+
+      return `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
+    }
+
+    // Render Table Data
+    function renderActivities() {
+      const query = searchInput.value.toLowerCase().trim();
+      const filterVal = actionFilter.value;
+      const itemSubFilter = itemOperationFilter.value;
+
+      // Toggle Sub-filter for ITEM_ACTION
+      if (filterVal === 'ITEM_ACTION') {
+        itemOperationFilter.style.display = 'inline-block';
+      } else {
+        itemOperationFilter.style.display = 'none';
+      }
+
+      const filtered = allActivities.filter(act => {
+        const desc = (act.description || '').toLowerCase();
+        const admin = (act.adminName || '').toLowerCase();
+        
+        const matchesQuery = desc.includes(query) || admin.includes(query);
+        const matchesType = filterVal === 'ALL' || act.actionType === filterVal;
+
+        // Extra check for Item Sub-Filter (Add/Edit/Delete)
+        let matchesItemSubFilter = true;
+        if (filterVal === 'ITEM_ACTION' && itemSubFilter !== 'ALL') {
+          if (itemSubFilter === 'add') {
+            matchesItemSubFilter = desc.includes('added') || desc.includes('add');
+          } else if (itemSubFilter === 'edit') {
+            matchesItemSubFilter = desc.includes('updated') || desc.includes('edit');
+          } else if (itemSubFilter === 'delete') {
+            matchesItemSubFilter = desc.includes('deleted') || desc.includes('delete') || desc.includes('remove');
+          }
+        }
+
+        return matchesQuery && matchesType && matchesItemSubFilter;
+      });
+
+      if (filtered.length === 0) {
+        activityTbody.innerHTML = `<tr><td colspan="4" class="empty-state">No recent activity found.</td></tr>`;
+        return;
+      }
+
+      activityTbody.innerHTML = filtered.map(act => {
+        const formattedDate = formatDateDDMMYYYY(act.timestamp);
+        const badgeClass = getBadgeClass(act.actionType);
+
+        return `
+          <tr>
+            <td>${formattedDate}</td>
+            <td><strong>${escapeHtml(act.adminName || 'System')}</strong></td>
+            <td><span class="badge ${badgeClass}">${act.actionType || 'LOG'}</span></td>
+            <td>${escapeHtml(act.description || '-')}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function getBadgeClass(type) {
+      switch(type) {
+        case 'ITEM_ACTION': return 'badge-item';      /* GREEN */
+        case 'PROFILE_UPDATE': return 'badge-profile';  /* RED */
+        case 'ADMIN_ACTION': return 'badge-admin';    /* YELLOW/ORANGE */
+        case 'COMPANY_ACTION': return 'badge-company';/* PURPLE */
+        default: return 'badge-default';
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    // Search and Filter Listeners
+    searchInput.addEventListener('input', renderActivities);
+    actionFilter.addEventListener('change', renderActivities);
+    itemOperationFilter.addEventListener('change', renderActivities);
+
+    // Clear Logs Handler
+    btnClearLogs.addEventListener('click', async () => {
+      if (confirm("Are you sure you want to clear all system activity logs? This action cannot be undone.")) {
+        try {
+          await remove(ref(db, 'recent_activities'));
+          alert("All activity logs cleared successfully.");
+        } catch (err) {
+          alert("Failed to clear logs: " + err.message);
+        }
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', async () => {
+      await remove(ref(db, 'active_session'));
+      window.location.replace('index.html');
+    });
+
+    initPage();
+  </script>
+</body>
+</html>
