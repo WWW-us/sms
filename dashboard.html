@@ -34,6 +34,15 @@
       font-family: 'Inter', sans-serif;
     }
 
+    /* Hide Body Initially for Security Check */
+    body {
+      display: none;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
     /* Urdu Language Support Styles */
     html[lang="ur"] {
       direction: rtl;
@@ -44,14 +53,6 @@
     html[lang="ur"] h3, 
     html[lang="ur"] .nav-link span {
       font-family: 'Noto Nastaliq Urdu', 'Inter', sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      overflow-x: hidden;
     }
 
     /* Sidebar Drawer */
@@ -559,7 +560,7 @@
       <!-- Recent Activity Section (LIFO Preview) -->
       <div class="activity-section">
         <div class="section-header">
-          <h2 data-en="Recent Activity (Last 10 Days)" data-ur="حالیہ سرگرمی (پچھلے 10 دن)">Recent Activity (Last 10 Days)</h2>
+          <h2 data-en="Recent Activity (Last 5)" data-ur="حالیہ سرگرمی (پچھلے 10 دن)">Recent Activity (Last 10 Days)</h2>
           <a href="recent_activity.html" class="view-all-link" data-en="View All" data-ur="سب دیکھیں">View All</a>
         </div>
         <ul class="activity-list" id="activityPreviewList">
@@ -624,7 +625,7 @@
 
         if (!snapshot.exists()) {
           window.location.replace('index.html');
-          return;
+          return false;
         }
 
         const session = snapshot.val();
@@ -638,7 +639,7 @@
             alert('Access revoked by Main Admin.');
             await remove(ref(db, 'active_session'));
             window.location.replace('index.html');
-            return;
+            return false;
           }
 
           // Populate User Info
@@ -646,12 +647,16 @@
           welcomeText.textContent = `Welcome, ${adminName}`;
           navAdminName.textContent = adminName;
           userAvatar.textContent = adminName.charAt(0).toUpperCase();
+          return true;
 
         } else {
           window.location.replace('index.html');
+          return false;
         }
       } catch (err) {
         console.error("Session verification failed:", err);
+        window.location.replace('index.html');
+        return false;
       }
     }
 
@@ -762,9 +767,16 @@
       }
     });
 
-    // Run Initialization
-    checkAuthSession();
-    syncDashboardStats();
+    // Run Initialization (Secure Logic)
+    async function initDashboard() {
+      const isAuthenticated = await checkAuthSession();
+      if (isAuthenticated) {
+        document.body.style.display = 'flex';
+        syncDashboardStats();
+      }
+    }
+
+    initDashboard();
   </script>
 </body>
 </html>

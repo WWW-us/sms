@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" id="htmlTag">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Items Management - Shop Management System</title>
   <!-- Google Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- jsPDF & AutoTable for Professional PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -31,39 +31,54 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
-    html[lang="ur"] { direction: rtl; }
-    html[lang="ur"] body, html[lang="ur"] h1, html[lang="ur"] h2, html[lang="ur"] h3, html[lang="ur"] .nav-link span {
-      font-family: 'Noto Nastaliq Urdu', 'Inter', sans-serif;
-    }
-
     body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden; }
 
     /* Sidebar Drawer */
     .sidebar {
       width: var(--sidebar-width); background-color: var(--secondary-color); color: #fff;
-      height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; transition: transform 0.3s ease; display: flex; flex-direction: column;
+      height: 100vh; height: 100dvh; position: fixed; top: 0; left: 0; z-index: 1000; 
+      transition: transform 0.3s ease; display: flex; flex-direction: column;
     }
-    html[lang="ur"] .sidebar { left: auto; right: 0; }
-    .sidebar-brand { height: var(--header-height); display: flex; align-items: center; padding: 0 20px; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand { height: var(--header-height); min-height: var(--header-height); display: flex; align-items: center; padding: 0 20px; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .sidebar-brand i { font-size: 1.5rem; color: #3b82f6; }
     .sidebar-brand h2 { font-size: 1.1rem; font-weight: 700; }
     .sidebar-menu { list-style: none; padding: 20px 0; flex: 1; overflow-y: auto; }
     .nav-link { display: flex; align-items: center; gap: 14px; padding: 12px 20px; color: #94a3b8; text-decoration: none; font-size: 0.95rem; font-weight: 500; }
     .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,255,255,0.08); border-left: 4px solid #3b82f6; }
-    html[lang="ur"] .nav-link:hover, html[lang="ur"] .nav-link.active { border-left: none; border-right: 4px solid #3b82f6; }
-    .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-footer { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; background-color: var(--secondary-color); }
     .btn-logout { width: 100%; padding: 10px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
     /* Layout Wrapper */
     .main-wrapper { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); min-height: 100vh; display: flex; flex-direction: column; }
-    html[lang="ur"] .main-wrapper { margin-left: 0; margin-right: var(--sidebar-width); }
 
-    /* Top Header */
-    .top-header { height: var(--header-height); background: var(--surface-color); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 900; }
-    .hamburger-btn { background: none; border: none; font-size: 1.3rem; color: var(--text-main); cursor: pointer; display: none; }
-    .lang-toggle-wrapper { display: flex; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 20px; padding: 2px; }
-    .lang-btn { border: none; background: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 16px; cursor: pointer; color: var(--text-muted); }
-    .lang-btn.active { background-color: var(--primary-color); color: #fff; }
+    /* Beautiful Top Header Gradient Styling */
+    .top-header { 
+      height: var(--header-height); 
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); 
+      color: #ffffff;
+      border-bottom: 1px solid rgba(255,255,255,0.1); 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 0 24px; 
+      position: sticky; 
+      top: 0; 
+      z-index: 900; 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .hamburger-btn { background: rgba(255,255,255,0.1); border: none; font-size: 1.2rem; color: #ffffff; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; }
+    .hamburger-btn:hover { background: rgba(255,255,255,0.2); }
+    .admin-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 6px 16px;
+      border-radius: 20px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .admin-badge i { color: #60a5fa; }
 
     /* Main Content */
     .content-area { padding: 24px; flex: 1; }
@@ -83,7 +98,6 @@
     .filter-card { background: var(--surface-color); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
     .search-box-group { display: flex; flex: 1; min-width: 280px; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; }
     .search-type-select { border: none; background: #f1f5f9; padding: 0 12px; font-weight: 600; font-size: 0.85rem; border-right: 1px solid var(--border-color); outline: none; }
-    html[lang="ur"] .search-type-select { border-right: none; border-left: 1px solid var(--border-color); }
     .search-input { border: none; padding: 10px 14px; width: 100%; outline: none; font-size: 0.9rem; }
     
     .view-toggle-btns { display: flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
@@ -104,7 +118,6 @@
     /* Table & Cards Representation */
     .items-table-container { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-    html[lang="ur"] table { text-align: right; }
     th, td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
     th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
     
@@ -122,9 +135,8 @@
     @media (max-width: 992px) {
       .hamburger-btn { display: block; }
       .sidebar { transform: translateX(-100%); }
-      html[lang="ur"] .sidebar { transform: translateX(100%); }
       .sidebar.open { transform: translateX(0) !important; }
-      .main-wrapper, html[lang="ur"] .main-wrapper { margin: 0; width: 100%; }
+      .main-wrapper { margin: 0; width: 100%; }
       .sidebar-overlay.active { display: block; }
     }
   </style>
@@ -140,15 +152,15 @@
       <h2>SMS Portal</h2>
     </div>
     <ul class="sidebar-menu">
-      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span data-en="Dashboard" data-ur="ڈیش بورڈ">Dashboard</span></a></li>
-      <li class="nav-item"><a href="items.html" class="nav-link active"><i class="fa-solid fa-box"></i><span data-en="Items" data-ur="اشیاء (Items)">Items</span></a></li>
-      <li class="nav-item"><a href="company.html" class="nav-link"><i class="fa-solid fa-building"></i><span data-en="Company" data-ur="کمپنی">Company</span></a></li>
-      <li class="nav-item"><a href="admins.html" class="nav-link"><i class="fa-solid fa-users-gear"></i><span data-en="Admins" data-ur="ایڈمنز">Admins</span></a></li>
-      <li class="nav-item"><a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear"></i><span data-en="Profile" data-ur="پروفائل">Profile</span></a></li>
-      <li class="nav-item"><a href="recent_activity.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i><span data-en="Recent Activity" data-ur="حالیہ سرگرمی">Recent Activity</span></a></li>
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></a></li>
+      <li class="nav-item"><a href="items.html" class="nav-link active"><i class="fa-solid fa-box"></i><span>Items</span></a></li>
+      <li class="nav-item"><a href="company.html" class="nav-link"><i class="fa-solid fa-building"></i><span>Company</span></a></li>
+      <li class="nav-item"><a href="admins.html" class="nav-link"><i class="fa-solid fa-users-gear"></i><span>Admins</span></a></li>
+      <li class="nav-item"><a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear"></i><span>Profile</span></a></li>
+      <li class="nav-item"><a href="recent_activity.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Recent Activity</span></a></li>
     </ul>
     <div class="sidebar-footer">
-      <button class="btn-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span data-en="Sign Out" data-ur="لاگ آؤٹ">Sign Out</span></button>
+      <button class="btn-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span>Sign Out</span></button>
     </div>
   </aside>
 
@@ -157,22 +169,21 @@
     <header class="top-header">
       <div style="display:flex; align-items:center; gap:16px;">
         <button class="hamburger-btn" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></button>
-        <div class="lang-toggle-wrapper">
-          <button class="lang-btn active" id="btnEn">English</button>
-          <button class="lang-btn" id="btnUr">اردو</button>
-        </div>
       </div>
-      <div style="font-weight:600; font-size:0.9rem;" id="navAdminName">Admin</div>
+      <div class="admin-badge">
+        <i class="fa-solid fa-user-shield"></i>
+        <span style="font-weight:600; font-size:0.9rem;" id="navAdminName">Admin</span>
+      </div>
     </header>
 
     <main class="content-area">
       <!-- Page Title & Toolbar -->
       <div class="page-title-bar">
-        <h1 data-en="Item Inventory" data-ur="اشیاء کا انوینٹری">Item Inventory</h1>
+        <h1>Item Inventory</h1>
         <div class="action-toolbar">
-          <button class="btn btn-primary" id="openAddModalBtn"><i class="fa-solid fa-plus"></i> <span data-en="Add Item" data-ur="آئٹم شامل کریں">Add Item</span></button>
-          <button class="btn btn-secondary" id="openCsvModalBtn"><i class="fa-solid fa-file-csv"></i> <span data-en="Import CSV" data-ur="سی ایس وی امپورٹ">Import CSV</span></button>
-          <button class="btn btn-secondary" id="openPdfModalBtn"><i class="fa-solid fa-file-pdf"></i> <span data-en="Export PDF" data-ur="پی ڈی ایف پیپر">Export PDF</span></button>
+          <button class="btn btn-primary" id="openAddModalBtn"><i class="fa-solid fa-plus"></i> Add Item</button>
+          <button class="btn btn-secondary" id="openCsvModalBtn"><i class="fa-solid fa-file-csv"></i> Import CSV</button>
+          <button class="btn btn-secondary" id="openPdfModalBtn"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
         </div>
       </div>
 
@@ -180,9 +191,11 @@
       <div class="filter-card">
         <div class="search-box-group">
           <select class="search-type-select" id="searchCriteria">
-            <option value="name" data-en="Search by Item Name" data-ur="نام سے تلاش کریں">Search by Name</option>
-            <option value="sellCotton" data-en="Search by Sell Price/Cotton" data-ur="فروخت کاٹن کی قیمت">Search by Sell/Cotton</option>
-            <option value="sellBox" data-en="Search by Sell Price/Box" data-ur="فروخت باکس کی قیمت">Search by Sell/Box</option>
+            <option value="name">Search by Item Name</option>
+            <option value="company">Search by Company</option>
+            <option value="sellBox">Search by Price per box</option>
+            <option value="totalSellBox">Search by Total sell Price per Box</option>
+            <option value="sellCotton">Search by Sell Price/Cotton</option>
           </select>
           <input type="text" class="search-input" id="searchInput" placeholder="Type here to search..." autocomplete="off">
         </div>
@@ -204,46 +217,50 @@
   <div class="modal-overlay" id="itemModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 id="modalTitle" data-en="Add New Item" data-ur="نیا آئٹم شامل کریں">Add New Item</h3>
+        <h3 id="modalTitle">Add New Item</h3>
         <i class="fa-solid fa-xmark" id="closeModalBtn" style="cursor:pointer; font-size:1.2rem;"></i>
       </div>
       <form id="itemForm">
         <input type="hidden" id="itemId">
         <div class="form-grid">
           <div class="form-group">
-            <label data-en="Item Name *" data-ur="آئٹم کا نام *">Item Name *</label>
+            <label>Item Name *</label>
             <input type="text" class="form-control" id="itemName" required placeholder="e.g. Cooking Oil 1L">
           </div>
           <div class="form-group">
-            <label data-en="Company (Optional)" data-ur="کمپنی (اختیاری)">Company (Optional)</label>
+            <label>Company (Optional)</label>
             <select class="form-control" id="itemCompany">
-              <option value="" data-en="Select Company" data-ur="کمپنی منتخب کریں">-- Select Company --</option>
+              <option value="">-- Select Company --</option>
             </select>
           </div>
           <div class="form-group">
-            <label data-en="Purchase Price / Cotton *" data-ur="خرید قیمت فی کاٹن *">Purchase Price / Cotton *</label>
+            <label>Purchase Price / Cotton *</label>
             <input type="number" step="0.01" class="form-control" id="purchaseCotton" required placeholder="0.00">
           </div>
           <div class="form-group">
-            <label data-en="Cotton Pieces (Qty) *" data-ur="کاٹن میں تعداد (پیسز) *">Cotton Pieces (Qty) *</label>
+            <label>Cotton Pieces (Qty) *</label>
             <input type="number" class="form-control" id="cottonPieces" required placeholder="e.g. 12">
           </div>
           <div class="form-group">
-            <label data-en="Box Price (Auto Divided)" data-ur="باکس قیمت (آٹو ڈیوائیڈ)">Box Price (Auto Divided)</label>
+            <label>Box Price (Auto Divided)</label>
             <input type="number" step="0.01" class="form-control" id="boxPrice" readonly placeholder="Calculated automatically">
           </div>
           <div class="form-group">
-            <label data-en="Sell Price / Cotton *" data-ur="فروخت قیمت فی کاٹن *">Sell Price / Cotton *</label>
-            <input type="number" step="0.01" class="form-control" id="sellCotton" required placeholder="0.00">
+            <label>Price per box *</label>
+            <input type="number" step="0.01" class="form-control" id="sellBox" required placeholder="0.00">
           </div>
           <div class="form-group">
-            <label data-en="Sell Price / Box *" data-ur="فروخت قیمت فی باکس *">Sell Price / Box *</label>
-            <input type="number" step="0.01" class="form-control" id="sellBox" required placeholder="0.00">
+            <label>Total sell price/box</label>
+            <input type="number" step="0.01" class="form-control" id="totalSellBox" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Sell Price / Cotton (Auto Calculated)</label>
+            <input type="number" step="0.01" class="form-control" id="sellCotton" readonly placeholder="Calculated automatically">
           </div>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px;">
-          <button type="button" class="btn btn-secondary" id="cancelModalBtn" data-en="Cancel" data-ur="منسوخ">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="saveItemBtn" data-en="Save Item" data-ur="محفوظ کریں">Save Item</button>
+          <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveItemBtn">Save Item</button>
         </div>
       </form>
     </div>
@@ -253,27 +270,27 @@
   <div class="modal-overlay" id="csvModal">
     <div class="modal-card" style="max-width:500px;">
       <div class="modal-header">
-        <h3 data-en="Import CSV Options" data-ur="سی ایس وی امپورٹ آپشنز">Import CSV Options</h3>
+        <h3>Import CSV Options</h3>
         <i class="fa-solid fa-xmark" id="closeCsvModalBtn" style="cursor:pointer;"></i>
       </div>
-      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;" data-en="Choose an option below to view required CSV structure or import your file:" data-ur="نیچے دیے گئے آپشنز میں سے منتخب کریں:">Choose an option below:</p>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">Choose an option below to view required CSV structure or import your file:</p>
       
       <!-- Format Details Box (Hidden by Default) -->
       <div id="csvFormatBox" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; padding:12px; border-radius:6px; margin-bottom:16px; font-size:0.85rem;">
         <strong style="color:var(--primary-color);">CSV Required Format:</strong>
         <p style="margin:6px 0 10px 0; font-family:monospace; font-size:0.8rem; background:#fff; padding:6px; border:1px solid #e2e8f0; border-radius:4px;">
-          Item Name, Company, Purchase Price / Cotton, Cotton Pieces, Sell Price / Cotton, Sell Price / Box
+          Item Name, Company, Purchase Price / Cotton, Cotton Pieces, Price per box, Total sell price/box
         </p>
         <strong>Example Row:</strong>
         <p style="margin:6px 0 0 0; font-family:monospace; font-size:0.8rem; background:#fff; padding:6px; border:1px solid #e2e8f0; border-radius:4px;">
-          Cooking Oil 1L, Dalda, 1200, 12, 1350, 115
+          Cooking Oil 1L, Dalda, 1200, 12, 115, 120
         </p>
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn btn-secondary" id="btnViewCsvFormat" data-en="View Format" data-ur="فارمیٹ دیکھیں"><i class="fa-solid fa-eye"></i> View Format</button>
+        <button class="btn btn-secondary" id="btnViewCsvFormat"><i class="fa-solid fa-eye"></i> View Format</button>
         <label class="btn btn-primary" style="margin:0; cursor:pointer;">
-          <i class="fa-solid fa-file-import"></i> <span data-en="Import CSV" data-ur="سی ایس وی امپورٹ">Import CSV</span>
+          <i class="fa-solid fa-file-import"></i> Import CSV
           <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
         </label>
       </div>
@@ -284,22 +301,23 @@
   <div class="modal-overlay" id="pdfModal">
     <div class="modal-card" style="max-width:500px;">
       <div class="modal-header">
-        <h3 data-en="Export PDF Preferences" data-ur="پی ڈی ایف ایکسپورٹ آپشنز">Export PDF Preferences</h3>
+        <h3>Export PDF Preferences</h3>
         <i class="fa-solid fa-xmark" id="closePdfModalBtn" style="cursor:pointer;"></i>
       </div>
-      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;" data-en="Select additional columns to include in the Landscape A4 PDF export:" data-ur="A4 لینڈ سکیپ پی ڈی ایف میں شامل کرنے والے کالمز منتخب کریں:">Select additional columns to include in PDF:</p>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Select additional columns to include in the Landscape A4 PDF export:</p>
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
         <label><input type="checkbox" checked disabled> Item Name & Company (Default)</label>
-        <label><input type="checkbox" checked disabled> Sell Price / Box (Default)</label>
+        <label><input type="checkbox" checked disabled> Price per box (Default)</label>
+        <label><input type="checkbox" id="pdfColTotalSellBox" checked> Total sell price/box</label>
         <label><input type="checkbox" id="pdfColPurchaseCotton"> Purchase Price / Cotton</label>
         <label><input type="checkbox" id="pdfColPurchaseBox"> Purchase Price / Box</label>
-        <label><input type="checkbox" id="pdfColSellCotton"> Sell Price / Cotton</label>
+        <label><input type="checkbox" id="pdfColSellCotton" checked> Sell Price / Cotton</label>
         <label><input type="checkbox" id="pdfColDateTime"> Date and Time</label>
         <label><input type="checkbox" id="pdfColAdmin"> Added/Edited By Admin Name</label>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn btn-secondary" id="btnViewPdf" data-en="View PDF" data-ur="پی ڈی ایف دیکھیں">View PDF</button>
-        <button class="btn btn-primary" id="btnDownloadPdf" data-en="Download PDF" data-ur="ڈاؤن لوڈ پی ڈی ایف">Download PDF</button>
+        <button class="btn btn-secondary" id="btnViewPdf">View PDF</button>
+        <button class="btn btn-primary" id="btnDownloadPdf">Download PDF</button>
       </div>
     </div>
   </div>
@@ -309,15 +327,15 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, get, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
-    authDomain: "laghari-shop.firebaseapp.com",
-databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
-    projectId: "laghari-shop",
-    storageBucket: "laghari-shop.firebasestorage.app",
-    messagingSenderId: "250908303863",
-    appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
+      authDomain: "laghari-shop.firebaseapp.com",
+      databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
+      projectId: "laghari-shop",
+      storageBucket: "laghari-shop.firebasestorage.app",
+      messagingSenderId: "250908303863",
+      appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -331,9 +349,6 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const logoutBtn = document.getElementById('logoutBtn');
-    const btnEn = document.getElementById('btnEn');
-    const btnUr = document.getElementById('btnUr');
-    const htmlTag = document.getElementById('htmlTag');
     const navAdminName = document.getElementById('navAdminName');
     
     const itemsContainer = document.getElementById('itemsContainer');
@@ -352,6 +367,9 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
     const purchaseCotton = document.getElementById('purchaseCotton');
     const cottonPieces = document.getElementById('cottonPieces');
     const boxPrice = document.getElementById('boxPrice');
+    const sellBox = document.getElementById('sellBox');
+    const sellCotton = document.getElementById('sellCotton');
+    const totalSellBox = document.getElementById('totalSellBox');
 
     const csvModal = document.getElementById('csvModal');
     const openCsvModalBtn = document.getElementById('openCsvModalBtn');
@@ -385,7 +403,7 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       } catch (err) { console.error("Auth check failed:", err); }
     }
 
-    // Auto calculate Box Price
+    // Auto calculate Box Price & Sell Price / Cotton (cottonPieces * Price per box)
     function calculateBoxPrice() {
       const purchase = parseFloat(purchaseCotton.value) || 0;
       const pieces = parseFloat(cottonPieces.value) || 0;
@@ -394,9 +412,22 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       } else {
         boxPrice.value = '';
       }
+      calculateSellCotton();
     }
+
+    function calculateSellCotton() {
+      const pieces = parseFloat(cottonPieces.value) || 0;
+      const pricePerBox = parseFloat(sellBox.value) || 0;
+      if (pieces > 0 && pricePerBox > 0) {
+        sellCotton.value = (pieces * pricePerBox).toFixed(2);
+      } else {
+        sellCotton.value = '';
+      }
+    }
+
     purchaseCotton.addEventListener('input', calculateBoxPrice);
     cottonPieces.addEventListener('input', calculateBoxPrice);
+    sellBox.addEventListener('input', calculateSellCotton);
 
     // Sync Companies dropdown
     function loadCompaniesDropdown() {
@@ -423,22 +454,24 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
             rawItemsData.push({ id: key, ...data[key] });
           }
           // Alphabetical Sort by Item Name (A-Z)
-          rawItemsData.sort((a, b) => a.itemName.localeCompare(b.itemName, undefined, { sensitivity: 'base' }));
+          rawItemsData.sort((a, b) => (a.itemName || '').localeCompare(b.itemName || '', undefined, { sensitivity: 'base' }));
         }
         renderItems();
       });
     }
 
-    // Render Items in Selected Format
+    // Render Items in Selected Format (Without Rs.)
     function renderItems() {
       const query = searchInput.value.toLowerCase().trim();
       const criteria = searchCriteria.value;
 
       const filtered = rawItemsData.filter(item => {
         if (!query) return true;
-        if (criteria === 'name') return item.itemName.toLowerCase().includes(query);
-        if (criteria === 'sellCotton') return String(item.sellCotton).includes(query);
-        if (criteria === 'sellBox') return String(item.sellBox).includes(query);
+        if (criteria === 'name') return (item.itemName || '').toLowerCase().includes(query);
+        if (criteria === 'company') return (item.company || '').toLowerCase().includes(query);
+        if (criteria === 'sellCotton') return String(item.sellCotton || '').includes(query);
+        if (criteria === 'sellBox') return String(item.sellBox || '').includes(query);
+        if (criteria === 'totalSellBox') return String(item.totalSellBox || '').includes(query);
         return true;
       });
 
@@ -453,14 +486,15 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
             <table>
               <thead>
                 <tr>
-                  <th data-en="Item Name" data-ur="نام">Item Name</th>
-                  <th data-en="Company" data-ur="کمپنی">Company</th>
-                  <th data-en="Pur. Price/Cotton" data-ur="خرید/کاٹن">Pur. Price/Cotton</th>
-                  <th data-en="Box Price" data-ur="باکس قیمت">Box Price</th>
-                  <th data-en="Sell/Cotton" data-ur="فروخت/کاٹن">Sell/Cotton</th>
-                  <th data-en="Sell/Box" data-ur="فروخت/باکس">Sell/Box</th>
-                  <th data-en="Last Updated By" data-ur="ترمیم کنندہ">Admin</th>
-                  <th data-en="Actions" data-ur="کارروائی">Actions</th>
+                  <th>Item Name</th>
+                  <th>Company</th>
+                  <th>Pur. Price/Cotton</th>
+                  <th>Box Price</th>
+                  <th>Price per box</th>
+                  <th>Total sell price/box</th>
+                  <th>Sell/Cotton</th>
+                  <th>Last Updated By</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -468,12 +502,13 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
         filtered.forEach(item => {
           tableHtml += `
             <tr>
-              <td><strong>${item.itemName}</strong></td>
+              <td><strong>${item.itemName || ''}</strong></td>
               <td>${item.company || '-'}</td>
-              <td>Rs. ${item.purchaseCotton}</td>
-              <td>Rs. ${item.boxPrice}</td>
-              <td>Rs. ${item.sellCotton}</td>
-              <td>Rs. ${item.sellBox}</td>
+              <td>${item.purchaseCotton || 0}</td>
+              <td>${item.boxPrice || 0}</td>
+              <td>${item.sellBox || 0}</td>
+              <td>${item.totalSellBox || 0}</td>
+              <td>${item.sellCotton || 0}</td>
               <td><small>${item.updatedBy || item.createdBy || 'Admin'}</small></td>
               <td>
                 <button class="btn btn-secondary" onclick="window.editItem('${item.id}')" style="padding:4px 8px;"><i class="fa-solid fa-pen"></i></button>
@@ -491,15 +526,17 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
             <div class="item-card">
               <div class="card-header">
                 <div>
-                  <div class="card-title">${item.itemName}</div>
+                  <div class="card-title">${item.itemName || ''}</div>
                   <div class="card-company">${item.company || 'No Company'}</div>
                 </div>
               </div>
               <div class="card-body">
-                <p><span>Pur. Cotton:</span> <strong>Rs. ${item.purchaseCotton}</strong></p>
-                <p><span>Box Price:</span> <strong>Rs. ${item.boxPrice}</strong></p>
-                <p><span>Sell Cotton:</span> <strong>Rs. ${item.sellCotton}</strong></p>
-                <p><span>Sell Box:</span> <strong style="color:var(--primary-color)">Rs. ${item.sellBox}</strong></p>
+                <p><span>Pur. Cotton:</span> <strong>${item.purchaseCotton || 0}</strong></p>
+                <p><span>Box Price:</span> <strong>${item.boxPrice || 0}</strong></p>
+                <p><span>Price per box:</span> <strong style="color:var(--primary-color)">${item.sellBox || 0}</strong></p>
+                <p><span>Total sell price/box:</span> <strong>${item.totalSellBox || 0}</strong></p>
+                <p><span>Sell Cotton:</span> <strong>${item.sellCotton || 0}</strong></p>
+                <p><span>Admin:</span> <strong>${item.updatedBy || item.createdBy || 'Admin'}</strong></p>
               </div>
               <div class="card-actions">
                 <button class="btn btn-secondary" onclick="window.editItem('${item.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
@@ -550,18 +587,19 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       const id = document.getElementById('itemId').value;
       const itemName = document.getElementById('itemName').value.trim();
       const company = document.getElementById('itemCompany').value;
-      const purchaseC = parseFloat(purchaseCotton.value);
-      const pieces = parseInt(cottonPieces.value);
-      const boxP = parseFloat(boxPrice.value);
-      const sellC = parseFloat(document.getElementById('sellCotton').value);
-      const sellB = parseFloat(document.getElementById('sellBox').value);
+      const purchaseC = parseFloat(purchaseCotton.value) || 0;
+      const pieces = parseInt(cottonPieces.value) || 0;
+      const boxP = parseFloat(boxPrice.value) || 0;
+      const sellB = parseFloat(sellBox.value) || 0;
+      const totalSellB = parseFloat(totalSellBox.value) || 0;
+      const sellC = parseFloat(sellCotton.value) || (pieces * sellB);
 
       const timestamp = new Date().toISOString();
       const adminName = activeAdmin ? activeAdmin.name : 'SMS Admin';
 
       const itemPayload = {
         itemName, company, purchaseCotton: purchaseC, cottonPieces: pieces,
-        boxPrice: boxP, sellCotton: sellC, sellBox: sellB,
+        boxPrice: boxP, sellBox: sellB, totalSellBox: totalSellB, sellCotton: sellC,
         updatedAt: timestamp, updatedBy: adminName
       };
 
@@ -584,13 +622,14 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       const item = rawItemsData.find(i => i.id === id);
       if (!item) return;
       document.getElementById('itemId').value = item.id;
-      document.getElementById('itemName').value = item.itemName;
+      document.getElementById('itemName').value = item.itemName || '';
       document.getElementById('itemCompany').value = item.company || '';
-      purchaseCotton.value = item.purchaseCotton;
-      cottonPieces.value = item.cottonPieces;
-      boxPrice.value = item.boxPrice;
-      document.getElementById('sellCotton').value = item.sellCotton;
-      document.getElementById('sellBox').value = item.sellBox;
+      purchaseCotton.value = item.purchaseCotton || '';
+      cottonPieces.value = item.cottonPieces || '';
+      boxPrice.value = item.boxPrice || '';
+      sellBox.value = item.sellBox || '';
+      totalSellBox.value = item.totalSellBox || '';
+      sellCotton.value = item.sellCotton || '';
       document.getElementById('modalTitle').textContent = 'Edit Item Details';
       itemModal.classList.add('active');
     };
@@ -622,7 +661,7 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
         const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
 
         if (lines.length < 2) {
-          alert("CSV format error!\n\nYour CSV file must contain a header row and at least one data row.\n\nRequired Format:\nItem Name, Company, Purchase Price / Cotton, Cotton Pieces, Sell Price / Cotton, Sell Price / Box");
+          alert("CSV format error!\n\nYour CSV file must contain a header row and at least one data row.\n\nRequired Format:\nItem Name, Company, Purchase Price / Cotton, Cotton Pieces, Price per box, Total sell price/box");
           csvFileInput.value = '';
           return;
         }
@@ -630,13 +669,17 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
         let importCount = 0;
         for (let i = 1; i < lines.length; i++) {
           const cols = lines[i].split(',').map(c => c.trim());
-          if (cols.length >= 6 && cols[0]) {
+          if (cols.length >= 5 && cols[0]) {
             const pur = parseFloat(cols[2]) || 0;
             const pcs = parseInt(cols[3]) || 1;
+            const priceBox = parseFloat(cols[4]) || 0;
+            const totalSellB = parseFloat(cols[5]) || 0;
+            const calcSellCotton = (pcs * priceBox).toFixed(2);
+
             await push(ref(db, 'items'), {
               itemName: cols[0], company: cols[1] || '', purchaseCotton: pur,
               cottonPieces: pcs, boxPrice: (pur / pcs).toFixed(2),
-              sellCotton: parseFloat(cols[4]) || 0, sellBox: parseFloat(cols[5]) || 0,
+              sellBox: priceBox, totalSellBox: totalSellB, sellCotton: parseFloat(calcSellCotton),
               createdAt: new Date().toISOString(), createdBy: activeAdmin ? activeAdmin.name : 'CSV Import'
             });
             importCount++;
@@ -655,16 +698,38 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       reader.readAsText(file);
     });
 
-    // PDF Modal Controls & Generator (Landscape A4)
+    // PDF Modal Controls & Generator (Landscape A4 with Centralized Prices & Full Urdu Support)
     openPdfModalBtn.addEventListener('click', () => pdfModal.classList.add('active'));
     closePdfModalBtn.addEventListener('click', () => pdfModal.classList.remove('active'));
 
-    function generatePDF(isDownload) {
+    async function generatePDF(isDownload) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-      // Dynamic Columns Setup
-      const headers = ['Item Name', 'Company', 'Sell Price / Box'];
+      // Load Urdu Font (Amiri) dynamically for UTF-8/Urdu support
+      try {
+        const fontUrl = "https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Regular.ttf";
+        const response = await fetch(fontUrl);
+        const fontArrayBuffer = await response.arrayBuffer();
+        
+        let binary = '';
+        const bytes = new Uint8Array(fontArrayBuffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64Font = window.btoa(binary);
+
+        doc.addFileToVFS('Amiri-Regular.ttf', base64Font);
+        doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
+        doc.setFont('Amiri');
+      } catch (err) {
+        console.warn("Could not load Urdu font, falling back to standard font:", err);
+      }
+
+      // Dynamic Columns Setup (Without Rs.)
+      const headers = ['Item Name', 'Company', 'Price per box'];
+      if (document.getElementById('pdfColTotalSellBox').checked) headers.push('Total sell price/box');
       if (document.getElementById('pdfColPurchaseCotton').checked) headers.push('Pur. Price/Cotton');
       if (document.getElementById('pdfColPurchaseBox').checked) headers.push('Box Price');
       if (document.getElementById('pdfColSellCotton').checked) headers.push('Sell Price/Cotton');
@@ -672,10 +737,11 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       if (document.getElementById('pdfColAdmin').checked) headers.push('Added/Edited By');
 
       const rows = rawItemsData.map(item => {
-        const row = [item.itemName, item.company || '-', `Rs. ${item.sellBox}`];
-        if (document.getElementById('pdfColPurchaseCotton').checked) row.push(`Rs. ${item.purchaseCotton}`);
-        if (document.getElementById('pdfColPurchaseBox').checked) row.push(`Rs. ${item.boxPrice}`);
-        if (document.getElementById('pdfColSellCotton').checked) row.push(`Rs. ${item.sellCotton}`);
+        const row = [item.itemName || '', item.company || '-', `${item.sellBox || 0}`];
+        if (document.getElementById('pdfColTotalSellBox').checked) row.push(`${item.totalSellBox || 0}`);
+        if (document.getElementById('pdfColPurchaseCotton').checked) row.push(`${item.purchaseCotton || 0}`);
+        if (document.getElementById('pdfColPurchaseBox').checked) row.push(`${item.boxPrice || 0}`);
+        if (document.getElementById('pdfColSellCotton').checked) row.push(`${item.sellCotton || 0}`);
         if (document.getElementById('pdfColDateTime').checked) row.push(new Date(item.updatedAt || item.createdAt).toLocaleDateString());
         if (document.getElementById('pdfColAdmin').checked) row.push(item.updatedBy || item.createdBy || 'Admin');
         return row;
@@ -687,12 +753,28 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       doc.setFontSize(10);
       doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
 
+      // Render AutoTable with Centralized Prices Alignment
       doc.autoTable({
         head: [headers],
         body: rows,
         startY: 28,
         theme: 'grid',
-        headStyles: { fillColor: [30, 58, 138], textColor: [255, 255, 255], fontStyle: 'bold' }
+        headStyles: { 
+          fillColor: [30, 58, 138], 
+          textColor: [255, 255, 255], 
+          fontStyle: 'bold',
+          font: 'Amiri',
+          halign: 'center'
+        },
+        styles: { 
+          font: "Amiri", 
+          fontSize: 10,
+          halign: 'center' // Centralized Alignment for Table Data & Prices
+        },
+        columnStyles: {
+          0: { halign: 'left' }, // Left align Item Name for better readability
+          1: { halign: 'left' }  // Left align Company Name
+        }
       });
 
       if (isDownload) {
@@ -712,13 +794,10 @@ databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
       window.location.replace('index.html');
     });
 
-    // Language Toggle
-    btnEn.addEventListener('click', () => { htmlTag.setAttribute('lang', 'en'); btnEn.classList.add('active'); btnUr.classList.remove('active'); });
-    btnUr.addEventListener('click', () => { htmlTag.setAttribute('lang', 'ur'); btnUr.classList.add('active'); btnEn.classList.remove('active'); });
-
     // Initialize Page Data
     verifyAuth();
     loadCompaniesDropdown();
     syncItemsData();
   </script>
-</body></html>
+</body>
+</html>
