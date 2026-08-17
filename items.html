@@ -51,7 +51,7 @@
     /* Layout Wrapper */
     .main-wrapper { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* Beautiful Top Header Gradient Styling */
+    /* Top Header */
     .top-header { 
       height: var(--header-height); 
       background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); 
@@ -94,11 +94,47 @@
     .btn-secondary:hover { background: #cbd5e1; }
     .btn-danger { background: var(--danger-color); color: #fff; }
 
-    /* Search & Filters Bar */
-    .filter-card { background: var(--surface-color); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-    .search-box-group { display: flex; flex: 1; min-width: 280px; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; }
-    .search-type-select { border: none; background: #f1f5f9; padding: 0 12px; font-weight: 600; font-size: 0.85rem; border-right: 1px solid var(--border-color); outline: none; }
-    .search-input { border: none; padding: 10px 14px; width: 100%; outline: none; font-size: 0.9rem; }
+    /* SEARCH & FILTERS BAR WITH MOBILE FIX */
+    .filter-card { 
+      background: var(--surface-color); 
+      padding: 16px; 
+      border-radius: 12px; 
+      border: 1px solid var(--border-color); 
+      margin-bottom: 24px; 
+      display: flex; 
+      gap: 12px; 
+      flex-wrap: wrap; 
+      align-items: center; 
+      justify-content: space-between; 
+    }
+    .search-box-group { 
+      display: flex; 
+      flex: 1; 
+      min-width: 280px; 
+      border: 1.5px solid var(--border-color); 
+      border-radius: 8px; 
+      overflow: hidden; 
+      background: #fff;
+    }
+    .search-type-select { 
+      border: none; 
+      background: #f1f5f9; 
+      padding: 10px; 
+      font-weight: 600; 
+      font-size: 0.85rem; 
+      border-right: 1px solid var(--border-color); 
+      outline: none; 
+      max-width: 180px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .search-input { 
+      border: none; 
+      padding: 10px 14px; 
+      width: 100%; 
+      outline: none; 
+      font-size: 0.9rem; 
+    }
     
     .view-toggle-btns { display: flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
     .view-btn { padding: 8px 12px; border: none; background: none; border-radius: 6px; cursor: pointer; color: var(--text-muted); }
@@ -132,12 +168,42 @@
 
     .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
 
+    /* MEDIA QUERIES & MOBILE RESPONSIVE FIXES */
     @media (max-width: 992px) {
       .hamburger-btn { display: block; }
       .sidebar { transform: translateX(-100%); }
       .sidebar.open { transform: translateX(0) !important; }
       .main-wrapper { margin: 0; width: 100%; }
       .sidebar-overlay.active { display: block; }
+    }
+
+    @media (max-width: 600px) {
+      .content-area { padding: 16px; }
+      .filter-card { flex-direction: column; align-items: stretch; gap: 12px; }
+      
+      /* Vertical Stack for Mobile Search Controls */
+      .search-box-group { 
+        flex-direction: column; 
+        border: none; 
+        background: transparent; 
+        gap: 8px; 
+        min-width: 100%; 
+      }
+      .search-type-select { 
+        width: 100% !important; 
+        max-width: 100% !important; 
+        border: 1.5px solid var(--border-color) !important; 
+        border-radius: 8px !important; 
+        padding: 10px 12px; 
+      }
+      .search-input { 
+        width: 100% !important; 
+        border: 1.5px solid var(--border-color) !important; 
+        border-radius: 8px !important; 
+        padding: 10px 12px; 
+      }
+      
+      .view-toggle-btns { align-self: flex-end; }
     }
   </style>
 </head>
@@ -403,7 +469,7 @@
       } catch (err) { console.error("Auth check failed:", err); }
     }
 
-    // Auto calculate Box Price & Sell Price / Cotton (cottonPieces * Price per box)
+    // Auto calculate Box Price & Sell Price / Cotton
     function calculateBoxPrice() {
       const purchase = parseFloat(purchaseCotton.value) || 0;
       const pieces = parseFloat(cottonPieces.value) || 0;
@@ -453,14 +519,13 @@
           for (let key in data) {
             rawItemsData.push({ id: key, ...data[key] });
           }
-          // Alphabetical Sort by Item Name (A-Z)
           rawItemsData.sort((a, b) => (a.itemName || '').localeCompare(b.itemName || '', undefined, { sensitivity: 'base' }));
         }
         renderItems();
       });
     }
 
-    // Render Items in Selected Format (Without Rs.)
+    // Render Items
     function renderItems() {
       const query = searchInput.value.toLowerCase().trim();
       const criteria = searchCriteria.value;
@@ -574,11 +639,7 @@
     closeCsvModalBtn.addEventListener('click', () => csvModal.classList.remove('active'));
     
     btnViewCsvFormat.addEventListener('click', () => {
-      if (csvFormatBox.style.display === 'none') {
-        csvFormatBox.style.display = 'block';
-      } else {
-        csvFormatBox.style.display = 'none';
-      }
+      csvFormatBox.style.display = csvFormatBox.style.display === 'none' ? 'block' : 'none';
     });
 
     // Save/Update Item Functionality
@@ -617,7 +678,7 @@
       } catch (err) { alert('Operation failed: ' + err.message); }
     });
 
-    // Global Functions for Action Buttons
+    // Global Functions
     window.editItem = (id) => {
       const item = rawItemsData.find(i => i.id === id);
       if (!item) return;
@@ -661,7 +722,7 @@
         const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
 
         if (lines.length < 2) {
-          alert("CSV format error!\n\nYour CSV file must contain a header row and at least one data row.\n\nRequired Format:\nItem Name, Company, Purchase Price / Cotton, Cotton Pieces, Price per box, Total sell price/box");
+          alert("CSV format error!\n\nYour CSV file must contain a header row and at least one data row.");
           csvFileInput.value = '';
           return;
         }
@@ -698,7 +759,7 @@
       reader.readAsText(file);
     });
 
-    // PDF Modal Controls & Generator (Landscape A4 with Centralized Prices & Full Urdu Support)
+    // PDF Modal Controls & Generator
     openPdfModalBtn.addEventListener('click', () => pdfModal.classList.add('active'));
     closePdfModalBtn.addEventListener('click', () => pdfModal.classList.remove('active'));
 
@@ -706,7 +767,6 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-      // Load Urdu Font (Amiri) dynamically for UTF-8/Urdu support
       try {
         const fontUrl = "https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Regular.ttf";
         const response = await fetch(fontUrl);
@@ -727,7 +787,6 @@
         console.warn("Could not load Urdu font, falling back to standard font:", err);
       }
 
-      // Dynamic Columns Setup (Without Rs.)
       const headers = ['Item Name', 'Company', 'Price per box'];
       if (document.getElementById('pdfColTotalSellBox').checked) headers.push('Total sell price/box');
       if (document.getElementById('pdfColPurchaseCotton').checked) headers.push('Pur. Price/Cotton');
@@ -747,13 +806,11 @@
         return row;
       });
 
-      // Header Banner Title
       doc.setFontSize(16);
       doc.text("Shop Management System - Item Inventory Report", 14, 15);
       doc.setFontSize(10);
       doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
 
-      // Render AutoTable with Centralized Prices Alignment
       doc.autoTable({
         head: [headers],
         body: rows,
@@ -769,11 +826,11 @@
         styles: { 
           font: "Amiri", 
           fontSize: 10,
-          halign: 'center' // Centralized Alignment for Table Data & Prices
+          halign: 'center'
         },
         columnStyles: {
-          0: { halign: 'left' }, // Left align Item Name for better readability
-          1: { halign: 'left' }  // Left align Company Name
+          0: { halign: 'left' },
+          1: { halign: 'left' }
         }
       });
 
