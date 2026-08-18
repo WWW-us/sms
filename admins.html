@@ -40,7 +40,7 @@
     background-color: var(--secondary-color); 
     color: #fff;
     height: 100vh; 
-    height: 100dvh; /* 👈 Fix: Dynamic viewport height for mobile browsers */
+    height: 100dvh;
     position: fixed; 
     top: 0; 
     left: 0; 
@@ -53,7 +53,7 @@
 
   .sidebar-brand { 
     height: var(--header-height); 
-    min-height: var(--header-height); /* 👈 Fix: Maintains header area height */
+    min-height: var(--header-height);
     display: flex; 
     align-items: center; 
     padding: 0 20px; 
@@ -67,7 +67,7 @@
     list-style: none; 
     padding: 20px 0; 
     flex: 1; 
-    overflow-y: auto; /* Keeps menu scrollable */
+    overflow-y: auto;
   }
 
   .nav-link { display: flex; align-items: center; gap: 14px; padding: 12px 20px; color: #94a3b8; text-decoration: none; font-size: 0.95rem; font-weight: 500; }
@@ -78,7 +78,7 @@
   .sidebar-footer { 
     padding: 15px 20px; 
     border-top: 1px solid rgba(255,255,255,0.1); 
-    flex-shrink: 0; /* 👈 Fix: Prevents logout button from disappearing/shrinking */
+    flex-shrink: 0;
     background-color: var(--secondary-color);
   }
   .btn-logout { width: 100%; padding: 10px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -167,7 +167,7 @@
     .main-wrapper { margin: 0 !important; width: 100%; }
     .sidebar-overlay.active { display: block; }
   }
-</style>
+  </style>
 </head>
 <body>
 
@@ -460,6 +460,15 @@
       });
     }
 
+    // Helper to determine if a row represents currently logged-in admin
+    function checkIsSelf(adm) {
+      if (!activeUser) return false;
+      if (activeUser.key && activeUser.key === adm.key) return true;
+      if (activeUser.userId && activeUser.userId === adm.key) return true;
+      if (activeUser.username && activeUser.username === adm.username) return true;
+      return false;
+    }
+
     // Main Render Function
     function renderAdmins() {
       if (rawAdminsData.length === 0) {
@@ -494,7 +503,7 @@
       `;
 
       rawAdminsData.forEach(adm => {
-        const isSelf = activeUser && (activeUser.userId === adm.key || activeUser.username === adm.username);
+        const isSelf = checkIsSelf(adm);
         const isMainAdminUser = activeUser && activeUser.isMainAdmin;
         const canManageOthers = isMainAdminUser || activeUser?.permissions?.manageAdmins;
         const canSeeDetails = isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.seeAdmin;
@@ -506,7 +515,6 @@
 
         const accessBadge = adm.loginAccess !== false ? '<span class="badge badge-active">Allowed</span>' : '<span class="badge badge-disabled">Disabled</span>';
         
-        // Hide Main Admin Tag & Authority details from restricted sub-admins
         let roleBadge = '-';
         if (isMainAdminUser || canManageOthers) {
           roleBadge = adm.isMainAdmin ? '<span class="badge badge-main">Main Admin</span>' : `<span class="badge badge-secondary">${adm.authority === 'all' ? 'All Authority' : 'Specific'}</span>`;
@@ -561,7 +569,7 @@
       let html = `<div class="admin-grid-container">`;
 
       rawAdminsData.forEach(adm => {
-        const isSelf = activeUser && (activeUser.userId === adm.key || activeUser.username === adm.username);
+        const isSelf = checkIsSelf(adm);
         const isMainAdminUser = activeUser && activeUser.isMainAdmin;
         const canManageOthers = isMainAdminUser || activeUser?.permissions?.manageAdmins;
         const canSeeDetails = isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.seeAdmin;
@@ -656,7 +664,7 @@
     closeModalBtn.addEventListener('click', () => adminModal.classList.remove('active'));
     cancelModalBtn.addEventListener('click', () => adminModal.classList.remove('active'));
 
-    // Save Admin
+    // Save Admin Form Handler
     adminForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const key = document.getElementById('adminKey').value;
@@ -690,9 +698,9 @@
 
       try {
         if (key) {
-          // Update existing
+          // Update existing admin
           const existingAdmin = rawAdminsData.find(a => a.key === key);
-          const isSelf = activeUser && (activeUser.userId === key || activeUser.username === existingAdmin?.username);
+          const isSelf = checkIsSelf(existingAdmin || { key });
           const canManageOthers = activeUser && (activeUser.isMainAdmin || activeUser.permissions?.manageAdmins);
 
           let payload = { name, username, password, email };
@@ -703,18 +711,28 @@
             payload.permissions = permissions;
           }
 
+          // Overwrite and permanent update in Database Node
           await update(ref(db, `admins/${key}`), payload);
           
+          // Immediate Session & Header update if current user updated their own profile
           if (isSelf) {
-            const updatedSession = { ...activeUser, name, username };
+            const updatedSession = { 
+              ...activeUser, 
+              name, 
+              username, 
+              password, 
+              email, 
+              key: key 
+            };
             localStorage.setItem('sms_user_session', JSON.stringify(updatedSession));
             await set(ref(db, 'active_session'), updatedSession);
+            activeUser = updatedSession;
             welcomeAdmin.textContent = `Welcome, ${name}`;
           }
 
           await logActivity('EDIT', `Updated info for admin "${name}".`);
         } else {
-          // Add New
+          // Add New Sub-Admin
           const payload = { 
             name, username, password, email, loginAccess, authority, permissions, 
             isMainAdmin: false, createdAt: new Date().toISOString() 
@@ -732,7 +750,7 @@
       const adm = rawAdminsData.find(a => a.key === key);
       if (!adm) return;
 
-      const isSelf = activeUser && (activeUser.userId === adm.key || activeUser.username === adm.username);
+      const isSelf = checkIsSelf(adm);
       const canManageOthers = activeUser && (activeUser.isMainAdmin || activeUser.permissions?.manageAdmins);
 
       document.getElementById('adminKey').value = adm.key;
@@ -743,7 +761,7 @@
       document.getElementById('adminEmail').value = adm.email || '';
       document.getElementById('adminLoginAccess').checked = adm.loginAccess !== false;
 
-      // Self-edit restriction for permissions UI
+      // Self-edit restriction for permissions UI if not allowed to manage
       if (!canManageOthers && isSelf) {
         document.getElementById('loginAccessGroup').style.display = 'none';
         document.getElementById('authorityTypeGroup').style.display = 'none';
@@ -752,7 +770,7 @@
         document.getElementById('loginAccessGroup').style.display = 'flex';
         document.getElementById('authorityTypeGroup').style.display = 'block';
 
-        if (adm.authority === 'specific') {
+        if (adm.authority === 'specific' && !adm.isMainAdmin) {
           authSpecific.checked = true;
           permissionBox.style.display = 'grid';
           document.getElementById('permAddItem').checked = adm.permissions?.addItem || false;

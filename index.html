@@ -204,172 +204,137 @@
     </form>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, child, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, get, child, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
-      authDomain: "laghari-shop.firebaseapp.com",
-      databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
-      projectId: "laghari-shop",
-      storageBucket: "laghari-shop.firebasestorage.app",
-      messagingSenderId: "250908303863",
-      appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
+    authDomain: "laghari-shop.firebaseapp.com",
+    databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
+    projectId: "laghari-shop",
+    storageBucket: "laghari-shop.firebasestorage.app",
+    messagingSenderId: "250908303863",
+    appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
+  };
 
-    let db = null;
-    try {
-      const app = initializeApp(firebaseConfig);
-      db = getDatabase(app);
-    } catch(e) {
-      console.warn("Firebase Init fallback active.");
-    }
+  let db = null;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+  } catch(e) {
+    console.warn("Firebase Init fallback active.");
+  }
 
-    const loginForm = document.getElementById('loginForm');
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const togglePasswordBtn = document.getElementById('togglePassword');
-    const errorMessage = document.getElementById('errorMessage');
-    const errorText = document.getElementById('errorText');
-    const loginBtn = document.getElementById('loginBtn');
-    const spinner = document.getElementById('spinner');
-    const btnText = document.getElementById('btnText');
+  const loginForm = document.getElementById('loginForm');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const togglePasswordBtn = document.getElementById('togglePassword');
+  const errorMessage = document.getElementById('errorMessage');
+  const errorText = document.getElementById('errorText');
+  const loginBtn = document.getElementById('loginBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
 
-    togglePasswordBtn.addEventListener('click', () => {
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-      togglePasswordBtn.classList.toggle('fa-eye');
-      togglePasswordBtn.classList.toggle('fa-eye-slash');
-    });
+  togglePasswordBtn.addEventListener('click', () => {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    togglePasswordBtn.classList.toggle('fa-eye');
+    togglePasswordBtn.classList.toggle('fa-eye-slash');
+  });
 
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
 
-      setLoading(true);
-      hideError();
+    setLoading(true);
+    hideError();
 
-      // Instant Match Check for Main Admin Credentials
-      if (username === 'sms.user' && password === '11335577.') {
-        const defaultAdmin = {
-          name: 'SMS Admin',
-          username: 'sms.user',
-          password: '11335577.',
-          email: 'admin@sms.com',
-          isMainAdmin: true,
-          loginAccess: true,
-          canLogin: true,
-          isLoggedIn: true,
-          permissions: { addItem: true, editItem: true, deleteItem: true, addCompany: true, manageAdmins: true }
-        };
+    // Check Database Admins Fresh directly from Firebase
+    if (db) {
+      try {
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('timeout'), 4000));
+        const fetchPromise = get(child(ref(db), 'admins'));
 
-        const sessionPayload = {
-          userId: 'main_admin',
-          username: defaultAdmin.username,
-          name: defaultAdmin.name,
-          isMainAdmin: true,
-          loggedInAt: new Date().toISOString()
-        };
+        const snapshot = await Promise.race([fetchPromise, timeoutPromise]);
+        let authenticatedUser = null;
+        let adminKey = null;
 
-        // Save to LocalStorage for instant cross-tab verification
-        localStorage.setItem('sms_user_session', JSON.stringify(sessionPayload));
-
-        if (db) {
-          try {
-            await set(ref(db, 'active_session'), sessionPayload);
-            await set(ref(db, 'admins/main_admin'), defaultAdmin);
-          } catch (err) {
-            console.warn("Firebase session write failed, continuing with local session:", err);
+        if (snapshot && snapshot.exists()) {
+          const adminsData = snapshot.val();
+          for (let key in adminsData) {
+            // Direct comparison with Realtime Firebase values
+            if (adminsData[key].username === username && adminsData[key].password === password) {
+              authenticatedUser = adminsData[key];
+              adminKey = key;
+              break;
+            }
           }
         }
 
-        window.location.replace('dashboard.html');
-        return;
-      }
-
-      // Check Database Admins with Timeout
-      if (db) {
-        try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('timeout'), 4000));
-          const fetchPromise = get(child(ref(db), 'admins'));
-
-          const snapshot = await Promise.race([fetchPromise, timeoutPromise]);
-          let authenticatedUser = null;
-          let adminKey = null;
-
-          if (snapshot && snapshot.exists()) {
-            const adminsData = snapshot.val();
-            for (let key in adminsData) {
-              if (adminsData[key].username === username && adminsData[key].password === password) {
-                authenticatedUser = adminsData[key];
-                adminKey = key;
-                break;
-              }
-            }
-          }
-
-          if (authenticatedUser) {
-            // 🚨 Strict Check: If loginAccess OR canLogin is explicitly set to false
-            if (authenticatedUser.loginAccess === false || authenticatedUser.canLogin === false) {
-              showError('Your login access has been revoked by Main Admin.');
-              setLoading(false);
-              return;
-            }
-
-            const sessionPayload = {
-              userId: adminKey,
-              username: authenticatedUser.username,
-              name: authenticatedUser.name,
-              isMainAdmin: !!authenticatedUser.isMainAdmin,
-              authority: authenticatedUser.authority || 'specific',
-              permissions: authenticatedUser.permissions || {},
-              loggedInAt: new Date().toISOString()
-            };
-
-            localStorage.setItem('sms_user_session', JSON.stringify(sessionPayload));
-
-            try {
-              await set(ref(db, 'active_session'), sessionPayload);
-              await set(ref(db, `admins/${adminKey}/isLoggedIn`), true);
-            } catch (err) {
-              console.warn("Firebase sync error:", err);
-            }
-
-            window.location.replace('dashboard.html');
+        if (authenticatedUser) {
+          // Strict Check: If loginAccess OR canLogin is explicitly set to false
+          if (authenticatedUser.loginAccess === false || authenticatedUser.canLogin === false) {
+            showError('Your login access has been revoked.');
+            setLoading(false);
             return;
           }
-        } catch (err) {
-          console.warn("DB check timed out or failed:", err);
+
+          const sessionPayload = {
+            userId: adminKey,
+            username: authenticatedUser.username,
+            name: authenticatedUser.name,
+            isMainAdmin: !!authenticatedUser.isMainAdmin,
+            authority: authenticatedUser.authority || (authenticatedUser.isMainAdmin ? 'all' : 'specific'),
+            permissions: authenticatedUser.permissions || {},
+            loggedInAt: new Date().toISOString()
+          };
+
+          // Clear old session & Set new
+          localStorage.clear();
+          localStorage.setItem('sms_user_session', JSON.stringify(sessionPayload));
+
+          try {
+            await set(ref(db, 'active_session'), sessionPayload);
+            await set(ref(db, `admins/${adminKey}/isLoggedIn`), true);
+          } catch (err) {
+            console.warn("Firebase sync error:", err);
+          }
+
+          window.location.replace('dashboard.html');
+          return;
         }
-      }
-
-      showError('Invalid username or password.');
-      setLoading(false);
-    });
-
-    function showError(msg) {
-      errorText.textContent = msg;
-      errorMessage.style.display = 'flex';
-    }
-
-    function hideError() {
-      errorMessage.style.display = 'none';
-    }
-
-    function setLoading(isLoading) {
-      if (isLoading) {
-        loginBtn.disabled = true;
-        spinner.style.display = 'inline-block';
-        btnText.textContent = 'Signing in...';
-      } else {
-        loginBtn.disabled = false;
-        spinner.style.display = 'none';
-        btnText.textContent = 'Sign In';
+      } catch (err) {
+        console.warn("DB check timed out or failed:", err);
       }
     }
-  </script>
+
+    showError('Invalid username or password.');
+    setLoading(false);
+  });
+
+  function showError(msg) {
+    errorText.textContent = msg;
+    errorMessage.style.display = 'flex';
+  }
+
+  function hideError() {
+    errorMessage.style.display = 'none';
+  }
+
+  function setLoading(isLoading) {
+    if (isLoading) {
+      loginBtn.disabled = true;
+      spinner.style.display = 'inline-block';
+      btnText.textContent = 'Signing in...';
+    } else {
+      loginBtn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = 'Sign In';
+    }
+  }
+</script>
 </body>
 </html>
