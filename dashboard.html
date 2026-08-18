@@ -578,40 +578,41 @@
   </div>
 
   <!-- Firebase Integration Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, get, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
-      authDomain: "laghari-shop.firebaseapp.com",
-      databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
-      projectId: "laghari-shop",
-      storageBucket: "laghari-shop.firebasestorage.app",
-      messagingSenderId: "250908303863",
-      appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
-    };
+  // Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
+    authDomain: "laghari-shop.firebaseapp.com",
+    databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
+    projectId: "laghari-shop",
+    storageBucket: "laghari-shop.firebasestorage.app",
+    messagingSenderId: "250908303863",
+    appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    // Global Active Admin State
-    let currentActiveAdmin = null;
+  // Global Active Admin State
+  let currentActiveAdmin = null;
 
-    // Elements
-    const hamburgerBtn = document.getElementById('hamburgerBtn');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const btnEn = document.getElementById('btnEn');
-    const btnUr = document.getElementById('btnUr');
-    const htmlTag = document.getElementById('htmlTag');
-    const welcomeText = document.getElementById('welcomeText');
-    const navAdminName = document.getElementById('navAdminName');
-    const userAvatar = document.getElementById('userAvatar');
+  // DOM Elements
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const btnEn = document.getElementById('btnEn');
+  const btnUr = document.getElementById('btnUr');
+  const htmlTag = document.documentElement;
+  const welcomeText = document.getElementById('welcomeText');
+  const navAdminName = document.getElementById('navAdminName');
+  const userAvatar = document.getElementById('userAvatar');
 
-    // Sidebar Mobile Toggle Controls
+  // Sidebar Mobile Toggle Controls
+  if (hamburgerBtn && sidebar && sidebarOverlay) {
     hamburgerBtn.addEventListener('click', () => {
       sidebar.classList.toggle('open');
       sidebarOverlay.classList.toggle('active');
@@ -621,167 +622,198 @@
       sidebar.classList.remove('open');
       sidebarOverlay.classList.remove('active');
     });
+  }
 
-    // Check Active Session in Firebase
-    async function checkAuthSession() {
-      try {
-        const sessionRef = ref(db, 'active_session');
-        const snapshot = await get(sessionRef);
+  // Check Active Session in Firebase & LocalStorage
+  async function checkAuthSession() {
+    try {
+      // 1. Check LocalStorage Session
+      const localSession = JSON.parse(localStorage.getItem('sms_user_session'));
+      
+      // 2. Fetch Active Session from Firebase
+      const sessionRef = ref(db, 'active_session');
+      const snapshot = await get(sessionRef);
 
-        if (!snapshot.exists()) {
-          window.location.replace('index.html');
-          return false;
-        }
-
-        const session = snapshot.val();
-        const adminRef = ref(db, `admins/${session.userId}`);
-        const adminSnap = await get(adminRef);
-
-        if (adminSnap.exists()) {
-          currentActiveAdmin = adminSnap.val();
-          
-          if (currentActiveAdmin.canLogin === false) {
-            alert('Access revoked by Main Admin.');
-            await remove(ref(db, 'active_session'));
-            window.location.replace('index.html');
-            return false;
-          }
-
-          // Populate User Info
-          const adminName = currentActiveAdmin.name || 'Admin';
-          welcomeText.textContent = `Welcome, ${adminName}`;
-          navAdminName.textContent = adminName;
-          userAvatar.textContent = adminName.charAt(0).toUpperCase();
-          return true;
-
-        } else {
-          window.location.replace('index.html');
-          return false;
-        }
-      } catch (err) {
-        console.error("Session verification failed:", err);
+      if (!snapshot.exists()) {
+        localStorage.clear();
         window.location.replace('index.html');
         return false;
       }
-    }
 
-    // Language Toggle Listener
+      const session = snapshot.val();
+      
+      // Target correct Admin ID
+      const targetUserId = session.userId || (localSession ? localSession.userId : 'main_admin');
+      
+      // Fetch Fresh Admin Data
+      const adminRef = ref(db, `admins/${targetUserId}`);
+      const adminSnap = await get(adminRef);
+
+      if (adminSnap.exists()) {
+        currentActiveAdmin = adminSnap.val();
+        
+        // Check Revoked Access
+        if (currentActiveAdmin.canLogin === false || currentActiveAdmin.loginAccess === false) {
+          alert('Access revoked by Main Admin.');
+          await remove(ref(db, 'active_session'));
+          localStorage.clear();
+          window.location.replace('index.html');
+          return false;
+        }
+
+        // Populate Dynamic User Info
+        const adminName = currentActiveAdmin.name || currentActiveAdmin.username || 'Admin';
+        welcomeText.textContent = `Welcome, ${adminName}`;
+        navAdminName.textContent = adminName;
+        userAvatar.textContent = adminName.charAt(0).toUpperCase();
+
+        // Keep local storage in sync with DB
+        if (localSession) {
+          localSession.name = adminName;
+          localSession.username = currentActiveAdmin.username;
+          localStorage.setItem('sms_user_session', JSON.stringify(localSession));
+        }
+
+        return true;
+
+      } else {
+        localStorage.clear();
+        window.location.replace('index.html');
+        return false;
+      }
+    } catch (err) {
+      console.error("Session verification failed:", err);
+      localStorage.clear();
+      window.location.replace('index.html');
+      return false;
+    }
+  }
+
+  // Language Toggle Listeners
+  if (btnEn && btnUr) {
     btnEn.addEventListener('click', () => setLanguage('en'));
     btnUr.addEventListener('click', () => setLanguage('ur'));
+  }
 
-    function setLanguage(lang) {
-      htmlTag.setAttribute('lang', lang);
-      if (lang === 'ur') {
-        btnUr.classList.add('active');
-        btnEn.classList.remove('active');
-      } else {
-        btnEn.classList.add('active');
-        btnUr.classList.remove('active');
-      }
-
-      // Update All Translatable Elements
-      document.querySelectorAll('[data-en]').forEach(el => {
-        el.textContent = el.getAttribute(`data-${lang}`);
-      });
-
-      // Welcome Text Custom Translation
-      if (currentActiveAdmin) {
-        if (lang === 'ur') {
-          welcomeText.textContent = `خوش آمدید، ${currentActiveAdmin.name}`;
-        } else {
-          welcomeText.textContent = `Welcome, ${currentActiveAdmin.name}`;
-        }
-      }
+  function setLanguage(lang) {
+    if (htmlTag) htmlTag.setAttribute('lang', lang);
+    if (lang === 'ur') {
+      btnUr.classList.add('active');
+      btnEn.classList.remove('active');
+    } else {
+      btnEn.classList.add('active');
+      btnUr.classList.remove('active');
     }
 
-    // Real-Time Sync Dashboard Statistics
-    function syncDashboardStats() {
-      // 1. Total Items
-      onValue(ref(db, 'items'), (snapshot) => {
-        document.getElementById('statTotalItems').textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+    // Update Translatable Elements
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const translation = el.getAttribute(`data-${lang}`);
+      if (translation) el.textContent = translation;
+    });
+
+    // Welcome Text Translation
+    if (currentActiveAdmin) {
+      const adminName = currentActiveAdmin.name || currentActiveAdmin.username || 'Admin';
+      welcomeText.textContent = lang === 'ur' ? `خوش آمدید، ${adminName}` : `Welcome, ${adminName}`;
+    }
+  }
+
+  // Real-Time Sync Dashboard Statistics
+  function syncDashboardStats() {
+    // 1. Total Items
+    onValue(ref(db, 'items'), (snapshot) => {
+      const el = document.getElementById('statTotalItems');
+      if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+    });
+
+    // 2. Total Companies
+    onValue(ref(db, 'companies'), (snapshot) => {
+      const el = document.getElementById('statTotalCompanies');
+      if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+    });
+
+    // 3. Active Admins
+    onValue(ref(db, 'admins'), (snapshot) => {
+      const el = document.getElementById('statTotalAdmins');
+      if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+    });
+
+    // 4. Recent Activity
+    onValue(ref(db, 'recent_activities'), (snapshot) => {
+      const activityList = document.getElementById('activityPreviewList');
+      if (!activityList) return;
+      
+      activityList.innerHTML = '';
+
+      if (!snapshot.exists()) {
+        activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity recorded yet.</li>`;
+        return;
+      }
+
+      const activities = [];
+      snapshot.forEach(childSnap => {
+        activities.push(childSnap.val());
       });
 
-      // 2. Total Companies
-      onValue(ref(db, 'companies'), (snapshot) => {
-        document.getElementById('statTotalCompanies').textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-      });
+      const tenDaysAgo = new Date();
+      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
 
-      // 3. Active Admins
-      onValue(ref(db, 'admins'), (snapshot) => {
-        document.getElementById('statTotalAdmins').textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-      });
+      const filtered = activities
+        .filter(act => act.timestamp && new Date(act.timestamp) >= tenDaysAgo)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 5);
 
-      // 4. Recent Activity (Last 10 Days in LIFO order)
-      onValue(ref(db, 'recent_activities'), (snapshot) => {
-        const activityList = document.getElementById('activityPreviewList');
-        activityList.innerHTML = '';
+      if (filtered.length === 0) {
+        activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity in the last 10 days.</li>`;
+        return;
+      }
 
-        if (!snapshot.exists()) {
-          activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity recorded yet.</li>`;
-          return;
-        }
+      filtered.forEach(act => {
+        let badgeClass = 'add';
+        let iconClass = 'fa-plus';
+        if (act.actionType === 'EDIT') { badgeClass = 'edit'; iconClass = 'fa-pen'; }
+        if (act.actionType === 'DELETE') { badgeClass = 'delete'; iconClass = 'fa-trash'; }
 
-        const activities = [];
-        snapshot.forEach(childSnap => {
-          activities.push(childSnap.val());
-        });
-
-        // Sort in LIFO (Latest First) & filter within 10 days
-        const tenDaysAgo = new Date();
-        tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-
-        const filtered = activities
-          .filter(act => new Date(act.timestamp) >= tenDaysAgo)
-          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-          .slice(0, 5); // Display top 5 in Dashboard preview
-
-        if (filtered.length === 0) {
-          activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity in the last 10 days.</li>`;
-          return;
-        }
-
-        filtered.forEach(act => {
-          let badgeClass = 'add';
-          let iconClass = 'fa-plus';
-          if (act.actionType === 'EDIT') { badgeClass = 'edit'; iconClass = 'fa-pen'; }
-          if (act.actionType === 'DELETE') { badgeClass = 'delete'; iconClass = 'fa-trash'; }
-
-          const li = document.createElement('li');
-          li.className = 'activity-item';
-          li.innerHTML = `
-            <div class="activity-details">
-              <div class="activity-badge ${badgeClass}"><i class="fa-solid ${iconClass}"></i></div>
-              <div class="activity-text">
-                <p>${act.description}</p>
-                <span>By ${act.adminName} &bull; ${new Date(act.timestamp).toLocaleString()}</span>
-              </div>
+        const li = document.createElement('li');
+        li.className = 'activity-item';
+        li.innerHTML = `
+          <div class="activity-details">
+            <div class="activity-badge ${badgeClass}"><i class="fa-solid ${iconClass}"></i></div>
+            <div class="activity-text">
+              <p>${act.description || 'Action performed'}</p>
+              <span>By ${act.adminName || 'Admin'} &bull; ${act.timestamp ? new Date(act.timestamp).toLocaleString() : ''}</span>
             </div>
-          `;
-          activityList.appendChild(li);
-        });
+          </div>
+        `;
+        activityList.appendChild(li);
       });
-    }
+    });
+  }
 
-    // Sign Out Action
+  // Sign Out Action
+  if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       try {
         await remove(ref(db, 'active_session'));
-        window.location.replace('index.html');
       } catch (err) {
-        console.error("Logout failed:", err);
+        console.warn("Firebase logout write failed:", err);
+      } finally {
+        localStorage.clear();
+        window.location.replace('index.html');
       }
     });
+  }
 
-    // Run Initialization (Secure Logic)
-    async function initDashboard() {
-      const isAuthenticated = await checkAuthSession();
-      if (isAuthenticated) {
-        document.body.style.display = 'flex';
-        syncDashboardStats();
-      }
+  // Run Initialization
+  async function initDashboard() {
+    const isAuthenticated = await checkAuthSession();
+    if (isAuthenticated) {
+      document.body.style.display = 'flex';
+      syncDashboardStats();
     }
+  }
 
-    initDashboard();
-  </script>
+  initDashboard();
+</script>
 </body>
 </html>

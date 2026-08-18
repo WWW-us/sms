@@ -219,163 +219,205 @@
   </div>
 
   <!-- FIREBASE & CORE SCRIPT -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, update, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, get, update, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
     authDomain: "laghari-shop.firebaseapp.com",
-databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
+    databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
     projectId: "laghari-shop",
     storageBucket: "laghari-shop.firebasestorage.app",
     messagingSenderId: "250908303863",
     appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
   };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    let activeUserSession = null;
-    let currentLang = 'en';
+  let activeUserSession = null;
+  let currentLang = 'en';
 
-    // Translation Dict
-    const i18n = {
-      en: {
-        navDashboard: "Dashboard", navItems: "Items", navCompany: "Company", navAdmins: "Admins",
-        navProfile: "Profile", navActivity: "Recent Activity", btnLogout: "Sign Out",
-        lblFullName: "Full Name *", lblUsername: "Username *", lblEmail: "Email Address (Optional)",
-        lblPassword: "Password *", btnUpdate: "Update Profile Details"
-      },
-      ur: {
-        navDashboard: "ڈیش بورڈ", navItems: "آئٹمز", navCompany: "کمپنی", navAdmins: "ایڈمنز",
-        navProfile: "پروفائل", navActivity: "حالیہ سرگرمی", btnLogout: "سائن آؤٹ",
-        lblFullName: "پورا نام *", lblUsername: "یوزر نیم *", lblEmail: "ای میل ایڈریس (اختیاری)",
-        lblPassword: "پاس ورڈ *", btnUpdate: "پروفائل اپ ڈیٹ کریں"
-      }
-    };
+  // Translation Dict
+  const i18n = {
+    en: {
+      navDashboard: "Dashboard", navItems: "Items", navCompany: "Company", navAdmins: "Admins",
+      navProfile: "Profile", navActivity: "Recent Activity", btnLogout: "Sign Out",
+      lblFullName: "Full Name *", lblUsername: "Username *", lblEmail: "Email Address (Optional)",
+      lblPassword: "Password *", btnUpdate: "Update Profile Details"
+    },
+    ur: {
+      navDashboard: "ڈیش بورڈ", navItems: "آئٹمز", navCompany: "کمپنی", navAdmins: "ایڈمنز",
+      navProfile: "پروفائل", navActivity: "حالیہ سرگرمی", btnLogout: "سائن آؤٹ",
+      lblFullName: "پورا نام *", lblUsername: "یوزر نیم *", lblEmail: "ای میل ایڈریس (اختیاری)",
+      lblPassword: "پاس ورڈ *", btnUpdate: "پروفائل اپ ڈیٹ کریں"
+    }
+  };
 
-    // DOM Elements
-    const sidebar = document.getElementById('sidebar');
-    const hamburgerBtn = document.getElementById('hamburgerBtn');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const welcomeAdmin = document.getElementById('welcomeAdmin');
-    const langToggleBtn = document.getElementById('langToggleBtn');
-    const langText = document.getElementById('langText');
+  // DOM Elements
+  const sidebar = document.getElementById('sidebar');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const welcomeAdmin = document.getElementById('welcomeAdmin');
+  const langToggleBtn = document.getElementById('langToggleBtn');
+  const langText = document.getElementById('langText');
 
-    const profileForm = document.getElementById('profileForm');
-    const profName = document.getElementById('profName');
-    const profUsername = document.getElementById('profUsername');
-    const profEmail = document.getElementById('profEmail');
-    const profPassword = document.getElementById('profPassword');
-    const togglePassword = document.getElementById('togglePassword');
-    const alertBox = document.getElementById('alertBox');
-    const profNameDisplay = document.getElementById('profNameDisplay');
-    const profRoleBadge = document.getElementById('profRoleBadge');
+  const profileForm = document.getElementById('profileForm');
+  const profName = document.getElementById('profName');
+  const profUsername = document.getElementById('profUsername');
+  const profEmail = document.getElementById('profEmail');
+  const profPassword = document.getElementById('profPassword');
+  const togglePassword = document.getElementById('togglePassword');
+  const alertBox = document.getElementById('alertBox');
+  const profNameDisplay = document.getElementById('profNameDisplay');
+  const profRoleBadge = document.getElementById('profRoleBadge');
 
-    // Navigation Toggle
+  // Navigation Toggle
+  if (hamburgerBtn && sidebar && sidebarOverlay) {
     hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
     sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
+  }
 
-    // Eye Toggle Password
+  // Eye Toggle Password
+  if (togglePassword && profPassword) {
     togglePassword.addEventListener('click', () => {
       const type = profPassword.getAttribute('type') === 'password' ? 'text' : 'password';
       profPassword.setAttribute('type', type);
       togglePassword.classList.toggle('fa-eye');
       togglePassword.classList.toggle('fa-eye-slash');
     });
+  }
 
-    // Language Toggle
+  // Language Toggle
+  if (langToggleBtn) {
     langToggleBtn.addEventListener('click', () => {
       currentLang = currentLang === 'en' ? 'ur' : 'en';
       document.body.classList.toggle('rtl', currentLang === 'ur');
-      langText.textContent = currentLang === 'en' ? 'Urdu' : 'English';
+      if (langText) langText.textContent = currentLang === 'en' ? 'Urdu' : 'English';
       applyTranslations();
     });
+  }
 
-    function applyTranslations() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+  function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (i18n[currentLang] && i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+    });
+  }
+
+  // Verify Session and Populate Data
+  async function loadProfile() {
+    try {
+      // Priority 1: Check LocalStorage Session First
+      const localSession = JSON.parse(localStorage.getItem('sms_user_session'));
+
+      // Priority 2: Fetch Active Session from Database
+      const sessionSnap = await get(ref(db, 'active_session'));
+      
+      if (!sessionSnap.exists() && !localSession) { 
+        localStorage.clear();
+        window.location.replace('index.html'); 
+        return; 
+      }
+
+      activeUserSession = sessionSnap.exists() ? sessionSnap.val() : localSession;
+      
+      // Target Correct UserId
+      const targetUserId = activeUserSession.userId || 'main_admin';
+
+      if (welcomeAdmin) welcomeAdmin.textContent = `Welcome, ${activeUserSession.name || 'Admin'}`;
+
+      const adminSnap = await get(ref(db, `admins/${targetUserId}`));
+      if (adminSnap.exists()) {
+        const adm = adminSnap.val();
+        profName.value = adm.name || '';
+        profUsername.value = adm.username || '';
+        profEmail.value = adm.email || '';
+        profPassword.value = adm.password || '';
+
+        if (profNameDisplay) profNameDisplay.textContent = adm.name || adm.username;
+        if (profRoleBadge) profRoleBadge.textContent = adm.isMainAdmin ? 'Main Admin' : 'Sub-Admin';
+      }
+    } catch (err) {
+      showAlert('Failed to load profile details: ' + err.message, 'danger');
+    }
+  }
+
+  // Submit Profile Update
+  profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = profName.value.trim();
+    const username = profUsername.value.trim();
+    const email = profEmail.value.trim();
+    const password = profPassword.value.trim();
+
+    if (!username || !password) {
+      showAlert('Username and Password cannot be empty!', 'danger');
+      return;
+    }
+
+    const updates = { name, username, email, password };
+    const targetUserId = (activeUserSession && activeUserSession.userId) ? activeUserSession.userId : 'main_admin';
+
+    try {
+      // 1. Update Admin Database Record
+      await update(ref(db, `admins/${targetUserId}`), updates);
+
+      // 2. Update Firebase Active Session Node
+      await update(ref(db, 'active_session'), { name, username });
+
+      // 3. CRITICAL FIX: Sync LocalStorage Cache Immediately
+      const localSession = JSON.parse(localStorage.getItem('sms_user_session')) || {};
+      localSession.name = name;
+      localSession.username = username;
+      localSession.userId = targetUserId;
+      localStorage.setItem('sms_user_session', JSON.stringify(localSession));
+
+      // 4. Record Activity Log
+      await push(ref(db, 'recent_activities'), {
+        actionType: 'PROFILE_UPDATE',
+        description: `Updated profile credentials for account "${name || username}".`,
+        adminName: name || username,
+        timestamp: new Date().toISOString()
       });
+
+      if (profNameDisplay) profNameDisplay.textContent = name || username;
+      if (welcomeAdmin) welcomeAdmin.textContent = `Welcome, ${name || username}`;
+      
+      showAlert('Profile & Credentials updated successfully! New password is now active.', 'success');
+
+    } catch (err) {
+      showAlert('Update failed: ' + err.message, 'danger');
     }
+  });
 
-    // Verify Session and Populate Data
-    async function loadProfile() {
-      try {
-        const sessionSnap = await get(ref(db, 'active_session'));
-        if (!sessionSnap.exists()) { window.location.replace('index.html'); return; }
+  function showAlert(msg, type) {
+    if (!alertBox) return;
+    alertBox.textContent = msg;
+    alertBox.className = `alert-box alert-${type}`;
+    alertBox.style.display = 'block';
+    setTimeout(() => alertBox.style.display = 'none', 4000);
+  }
 
-        activeUserSession = sessionSnap.val();
-        welcomeAdmin.textContent = `Welcome, ${activeUserSession.name}`;
-
-        const adminSnap = await get(ref(db, `admins/${activeUserSession.userId}`));
-        if (adminSnap.exists()) {
-          const adm = adminSnap.val();
-          profName.value = adm.name || '';
-          profUsername.value = adm.username || '';
-          profEmail.value = adm.email || '';
-          profPassword.value = adm.password || '';
-
-          profNameDisplay.textContent = adm.name;
-          profRoleBadge.textContent = adm.isMainAdmin ? 'Main Admin' : 'Sub-Admin';
-        }
-      } catch (err) {
-        showAlert('Failed to load profile details: ' + err.message, 'danger');
-      }
-    }
-
-    // Submit Profile Update
-    profileForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const name = profName.value.trim();
-      const username = profUsername.value.trim();
-      const email = profEmail.value.trim();
-      const password = profPassword.value.trim();
-
-      const updates = { name, username, email, password };
-
-      try {
-        // Update admin DB record
-        await update(ref(db, `admins/${activeUserSession.userId}`), updates);
-
-        // Sync active session details
-        await update(ref(db, 'active_session'), { name, username });
-
-        // Record Activity Log
-        await push(ref(db, 'recent_activities'), {
-          actionType: 'PROFILE_UPDATE',
-          description: `Updated profile details for account "${name}".`,
-          adminName: name,
-          timestamp: new Date().toISOString()
-        });
-
-        profNameDisplay.textContent = name;
-        welcomeAdmin.textContent = `Welcome, ${name}`;
-        showAlert('Profile updated successfully!', 'success');
-
-      } catch (err) {
-        showAlert('Update failed: ' + err.message, 'danger');
-      }
-    });
-
-    function showAlert(msg, type) {
-      alertBox.textContent = msg;
-      alertBox.className = `alert-box alert-${type}`;
-      alertBox.style.display = 'block';
-      setTimeout(() => alertBox.style.display = 'none', 4000);
-    }
-
-    // Logout Handler
+  // Logout Handler
+  if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
-      await remove(ref(db, 'active_session'));
-      window.location.replace('index.html');
+      try {
+        await remove(ref(db, 'active_session'));
+      } catch (e) {
+        console.warn("Logout error:", e);
+      } finally {
+        localStorage.clear();
+        window.location.replace('index.html');
+      }
     });
+  }
 
-    // Initialize Page
-    loadProfile();
-  </script>
+  // Initialize Page
+  loadProfile();
+</script>
 </body>
 </html>
