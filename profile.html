@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
- <style>
+  <style>
   :root {
     --primary-color: #1e3a8a;
     --primary-hover: #1d4ed8;
@@ -39,7 +39,7 @@
     background-color: var(--secondary-color); 
     color: #fff;
     height: 100vh; 
-    height: 100dvh; /* 👈 Fix: Dynamic viewport height for mobile */
+    height: 100dvh;
     position: fixed; 
     top: 0; 
     left: 0; 
@@ -52,7 +52,7 @@
 
   .sidebar-brand { 
     height: var(--header-height); 
-    min-height: var(--header-height); /* 👈 Fix: Prevents header shrinking */
+    min-height: var(--header-height);
     display: flex; 
     align-items: center; 
     padding: 0 20px; 
@@ -66,7 +66,7 @@
     list-style: none; 
     padding: 20px 0; 
     flex: 1; 
-    overflow-y: auto; /* Fix: Keeps menu links scrollable */
+    overflow-y: auto;
   }
 
   .nav-link { display: flex; align-items: center; gap: 14px; padding: 12px 20px; color: #94a3b8; text-decoration: none; font-size: 0.95rem; font-weight: 500; }
@@ -77,7 +77,7 @@
   .sidebar-footer { 
     padding: 15px 20px; 
     border-top: 1px solid rgba(255,255,255,0.1); 
-    flex-shrink: 0; /* 👈 Fix: Prevents logout button from collapsing */
+    flex-shrink: 0;
     background-color: var(--secondary-color);
   }
   .btn-logout { width: 100%; padding: 10px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -85,21 +85,60 @@
   /* Content Wrapper */
   .main-wrapper { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); min-height: 100vh; display: flex; flex-direction: column; }
   body.rtl .main-wrapper { margin-left: 0; margin-right: var(--sidebar-width); }
-  .top-header { height: var(--header-height); background: var(--surface-color); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 900; }
+  
+  /* Blue Glassmorphism Header Bar */
+  .top-header { 
+    height: var(--header-height); 
+    background: rgba(30, 58, 138, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); 
+    color: #ffffff;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 24px; 
+    position: sticky; 
+    top: 0; 
+    z-index: 900; 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
   .header-left { display: flex; align-items: center; gap: 16px; }
-  .hamburger-btn { background: none; border: none; font-size: 1.3rem; color: var(--text-main); cursor: pointer; display: none; }
-  .welcome-text { font-weight: 600; font-size: 0.95rem; }
-  .lang-toggle-btn { padding: 6px 12px; background: #e2e8f0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+  .hamburger-btn { background: none; border: none; font-size: 1.3rem; color: #ffffff; cursor: pointer; display: none; }
+  .lang-toggle-btn { padding: 6px 14px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(5px); }
 
-  .content-area { padding: 24px; flex: 1; display: flex; justify-content: center; }
+  .content-area { padding: 24px; flex: 1; display: flex; flex-direction: column; align-items: center; }
+  
+  /* Main Profile Section Heading (Triple Click Target) */
+  .section-title-trigger {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 18px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.2s;
+  }
+  .section-title-trigger:hover { color: var(--primary-color); }
   
   /* Profile Card Layout */
   .profile-card {
     background: var(--surface-color); width: 100%; max-width: 600px; border-radius: 16px;
-    border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); padding: 32px; align-self: flex-start;
+    border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); padding: 32px; align-self: center;
   }
   .profile-header { text-align: center; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
-  .profile-avatar { width: 80px; height: 80px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 12px; }
+  
+  /* Avatar Container & Photo Overlay Tools */
+  .avatar-container { position: relative; width: 90px; height: 90px; margin: 0 auto 12px; border-radius: 50%; overflow: hidden; background: var(--primary-color); }
+  .avatar-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease; }
+  .avatar-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; gap: 10px; opacity: 0; transition: opacity 0.2s ease; color: #fff; }
+  .avatar-container:hover .avatar-overlay { opacity: 1; }
+  .avatar-btn { background: rgba(255,255,255,0.25); border: none; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; }
+  .avatar-btn:hover { background: #ffffff; color: var(--text-main); }
+
   .profile-header h2 { font-size: 1.4rem; font-weight: 700; }
   .profile-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-top: 6px; background: #dbeafe; color: #1e40af; }
 
@@ -125,6 +164,23 @@
 
   .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
 
+  /* Custom Popup Modals */
+  .inbox-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(3px); z-index: 2000; display: none; justify-content: center; align-items: center; }
+  .inbox-modal { background: var(--surface-color); width: 90%; max-width: 460px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); overflow: hidden; }
+  .inbox-header { background: var(--secondary-color); color: white; padding: 16px 20px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .inbox-body { padding: 20px; max-height: 380px; overflow-y: auto; }
+  .inbox-list-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
+  .inbox-list-item:hover { background: var(--bg-color); }
+  .inbox-list-item input[type="checkbox"] { accent-color: var(--primary-color); width: 18px; height: 18px; }
+  .inbox-footer { padding: 12px 20px; background: var(--bg-color); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+  .btn-modal { padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; }
+  .btn-modal-cancel { background: #e2e8f0; color: var(--text-main); }
+  .btn-modal-confirm { background: var(--primary-color); color: white; }
+
+  /* Crop/Rotate Preview Container */
+  .crop-preview-box { width: 150px; height: 150px; margin: 0 auto 15px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary-color); display: flex; align-items: center; justify-content: center; }
+  .crop-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+
   @media (max-width: 992px) {
     .hamburger-btn { display: block; }
     .sidebar { transform: translateX(-100%); }
@@ -133,7 +189,7 @@
     .main-wrapper { margin: 0 !important; width: 100%; }
     .sidebar-overlay.active { display: block; }
   }
-</style>
+  </style>
 </head>
 <body>
 
@@ -158,27 +214,42 @@
     </div>
   </aside>
 
-  <!-- Main Body Wrapper -->
+  <!-- Main Content Wrapper -->
   <div class="main-wrapper">
+    <!-- Blue Glassmorphism Dashboard Header -->
     <header class="top-header">
       <div class="header-left">
         <button class="hamburger-btn" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></button>
-        <div class="welcome-text" id="welcomeAdmin">Welcome, Admin</div>
       </div>
       <button class="lang-toggle-btn" id="langToggleBtn"><i class="fa-solid fa-globe"></i> <span id="langText">Urdu</span></button>
     </header>
 
     <main class="content-area">
+      <!-- Profile Title (Triple Click Security Trigger) -->
+      <h1 class="section-title-trigger" id="profileTitleTrigger">
+        <i class="fa-solid fa-user-circle"></i> <span data-i18n="navProfile">Profile</span>
+      </h1>
+
       <div class="profile-card">
-        <div class="profile-header">
-          <div class="profile-avatar"><i class="fa-solid fa-user-shield"></i></div>
+        
+        <!-- Profile Header Details (Initially Hidden to prevent flash) -->
+        <div class="profile-header" style="display: none;">
+          <div class="avatar-container">
+            <img id="avatarImage" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile Picture">
+            <div class="avatar-overlay">
+              <button class="avatar-btn" id="uploadAvatarBtn" title="Upload Image"><i class="fa-solid fa-camera"></i></button>
+              <button class="avatar-btn" id="removeAvatarBtn" title="Remove Image"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
           <h2 id="profNameDisplay">Admin Account</h2>
           <span class="profile-badge" id="profRoleBadge">Main Admin</span>
         </div>
 
         <div class="alert-box" id="alertBox"></div>
 
-        <form id="profileForm">
+        <!-- Form Details (Initially Hidden to prevent flash) -->
+        <form id="profileForm" style="display: none;">
           <div class="form-group">
             <label data-i18n="lblFullName">Full Name *</label>
             <div class="input-wrapper">
@@ -191,7 +262,8 @@
             <label data-i18n="lblUsername">Username *</label>
             <div class="input-wrapper">
               <i class="fa-solid fa-user left-icon"></i>
-              <input type="text" id="profUsername" class="form-control" required placeholder="Enter username">
+              <input type="password" id="profUsername" class="form-control" required placeholder="Enter username">
+              <i class="fa-solid fa-eye toggle-password" id="toggleUsername"></i>
             </div>
           </div>
 
@@ -214,210 +286,518 @@
 
           <button type="submit" class="btn-submit" data-i18n="btnUpdate">Update Profile Details</button>
         </form>
+
+        <!-- No Profile Information Yet Notice -->
+        <div id="hiddenProfileNotice" style="display: none; text-align: center; padding: 40px 10px;">
+          <i class="fa-solid fa-user-slash" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 12px;"></i>
+          <h3 style="color: var(--text-main); font-weight: 600;">No Profile Information Yet</h3>
+        </div>
+
       </div>
     </main>
   </div>
 
+  <!-- MODAL 1: Select Dynamic Added Profiles to Hide/Unhide -->
+  <div class="inbox-modal-overlay" id="profilesSelectModal">
+    <div class="inbox-modal">
+      <div class="inbox-header">
+        <i class="fa-solid fa-user-lock"></i>
+        <span>Select Added Profiles to Hide</span>
+      </div>
+      <div class="inbox-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+          <label style="font-size: 0.85rem; font-weight:600; cursor:pointer;">
+            <input type="checkbox" id="selectAllProfilesCheckbox"> Select All Profiles
+          </label>
+        </div>
+        <div id="dynamicProfilesList">
+          <!-- Dynamic loaded admin options -->
+        </div>
+      </div>
+      <div class="inbox-footer">
+        <button class="btn-modal btn-modal-cancel" id="btnOpenSetPassModal" style="background: #f1f5f9; color:#334155;"><i class="fa-solid fa-key"></i> Set Password</button>
+        <div>
+          <button class="btn-modal btn-modal-cancel" id="cancelProfilesModal">Cancel</button>
+          <button class="btn-modal btn-modal-confirm" id="confirmProfilesModal">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Password Verification for Hiding Profiles -->
+  <div class="inbox-modal-overlay" id="passwordAuthModal">
+    <div class="inbox-modal">
+      <div class="inbox-header">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Security Verification</span>
+      </div>
+      <div class="inbox-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Enter Master/Hide security password to proceed:</p>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-key left-icon"></i>
+          <input type="password" id="modalVerifyPassword" class="form-control" placeholder="Enter password">
+          <i class="fa-solid fa-eye toggle-password" id="toggleVerifyModalPassword"></i>
+        </div>
+      </div>
+      <div class="inbox-footer">
+        <div></div>
+        <div>
+          <button class="btn-modal btn-modal-cancel" id="cancelAuthModal">Cancel</button>
+          <button class="btn-modal btn-modal-confirm" id="confirmAuthModal">Authorize & Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Configure/Set New Security Hide Password -->
+  <div class="inbox-modal-overlay" id="setSecurityPasswordModal">
+    <div class="inbox-modal">
+      <div class="inbox-header">
+        <i class="fa-solid fa-lock"></i>
+        <span>Set Hide Security Password</span>
+      </div>
+      <div class="inbox-body">
+        <div class="form-group">
+          <label>New Security Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-key left-icon"></i>
+            <input type="password" id="newSecurityPasswordInput" class="form-control" placeholder="Set new hide password">
+          </div>
+        </div>
+      </div>
+      <div class="inbox-footer">
+        <div></div>
+        <div>
+          <button class="btn-modal btn-modal-cancel" id="cancelSetPassModal">Cancel</button>
+          <button class="btn-modal btn-modal-confirm" id="saveSecurityPasswordBtn">Save Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Image Editor / Rotate Modal -->
+  <div class="inbox-modal-overlay" id="imageCropModal">
+    <div class="inbox-modal">
+      <div class="inbox-header">
+        <i class="fa-solid fa-image"></i>
+        <span>Adjust Profile Picture</span>
+      </div>
+      <div class="inbox-body">
+        <div class="crop-preview-box">
+          <img id="cropPreviewImg" src="" alt="Crop Preview">
+        </div>
+        <div style="display:flex; justify-content:center; gap:10px;">
+          <button class="btn-modal btn-modal-cancel" id="btnRotateLeft"><i class="fa-solid fa-rotate-left"></i> Turn Left</button>
+          <button class="btn-modal btn-modal-cancel" id="btnRotateRight"><i class="fa-solid fa-rotate-right"></i> Turn Right</button>
+        </div>
+      </div>
+      <div class="inbox-footer">
+        <div></div>
+        <div>
+          <button class="btn-modal btn-modal-cancel" id="cancelCropModal">Cancel</button>
+          <button class="btn-modal btn-modal-confirm" id="saveCropModal">Save Picture</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- FIREBASE & CORE SCRIPT -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, get, update, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, update, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
-    authDomain: "laghari-shop.firebaseapp.com",
-    databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
-    projectId: "laghari-shop",
-    storageBucket: "laghari-shop.firebasestorage.app",
-    messagingSenderId: "250908303863",
-    appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8nR7u2rdnL0Wc8fG4IRKet_a0tcsRdAY",
+      authDomain: "laghari-shop.firebaseapp.com",
+      databaseURL: "https://laghari-shop-default-rtdb.firebaseio.com",
+      projectId: "laghari-shop",
+      storageBucket: "laghari-shop.firebasestorage.app",
+      messagingSenderId: "250908303863",
+      appId: "1:250908303863:web:c601ba80ba9e5258eb4ef2"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  let activeUserSession = null;
-  let currentLang = 'en';
+    let activeUserSession = null;
+    let currentLang = 'en';
+    let isProfileHidden = false;
+    let rotationAngle = 0;
+    let tempImageBase64 = '';
+    let fetchedAdminsMap = {};
 
-  // Translation Dict
-  const i18n = {
-    en: {
-      navDashboard: "Dashboard", navItems: "Items", navCompany: "Company", navAdmins: "Admins",
-      navProfile: "Profile", navActivity: "Recent Activity", btnLogout: "Sign Out",
-      lblFullName: "Full Name *", lblUsername: "Username *", lblEmail: "Email Address (Optional)",
-      lblPassword: "Password *", btnUpdate: "Update Profile Details"
-    },
-    ur: {
-      navDashboard: "ڈیش بورڈ", navItems: "آئٹمز", navCompany: "کمپنی", navAdmins: "ایڈمنز",
-      navProfile: "پروفائل", navActivity: "حالیہ سرگرمی", btnLogout: "سائن آؤٹ",
-      lblFullName: "پورا نام *", lblUsername: "یوزر نیم *", lblEmail: "ای میل ایڈریس (اختیاری)",
-      lblPassword: "پاس ورڈ *", btnUpdate: "پروفائل اپ ڈیٹ کریں"
-    }
-  };
-
-  // DOM Elements
-  const sidebar = document.getElementById('sidebar');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const welcomeAdmin = document.getElementById('welcomeAdmin');
-  const langToggleBtn = document.getElementById('langToggleBtn');
-  const langText = document.getElementById('langText');
-
-  const profileForm = document.getElementById('profileForm');
-  const profName = document.getElementById('profName');
-  const profUsername = document.getElementById('profUsername');
-  const profEmail = document.getElementById('profEmail');
-  const profPassword = document.getElementById('profPassword');
-  const togglePassword = document.getElementById('togglePassword');
-  const alertBox = document.getElementById('alertBox');
-  const profNameDisplay = document.getElementById('profNameDisplay');
-  const profRoleBadge = document.getElementById('profRoleBadge');
-
-  // Navigation Toggle
-  if (hamburgerBtn && sidebar && sidebarOverlay) {
-    hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
-    sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
-  }
-
-  // Eye Toggle Password
-  if (togglePassword && profPassword) {
-    togglePassword.addEventListener('click', () => {
-      const type = profPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-      profPassword.setAttribute('type', type);
-      togglePassword.classList.toggle('fa-eye');
-      togglePassword.classList.toggle('fa-eye-slash');
-    });
-  }
-
-  // Language Toggle
-  if (langToggleBtn) {
-    langToggleBtn.addEventListener('click', () => {
-      currentLang = currentLang === 'en' ? 'ur' : 'en';
-      document.body.classList.toggle('rtl', currentLang === 'ur');
-      if (langText) langText.textContent = currentLang === 'en' ? 'Urdu' : 'English';
-      applyTranslations();
-    });
-  }
-
-  function applyTranslations() {
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (i18n[currentLang] && i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
-    });
-  }
-
-  // Verify Session and Populate Data
-  async function loadProfile() {
-    try {
-      // Priority 1: Check LocalStorage Session First
-      const localSession = JSON.parse(localStorage.getItem('sms_user_session'));
-
-      // Priority 2: Fetch Active Session from Database
-      const sessionSnap = await get(ref(db, 'active_session'));
-      
-      if (!sessionSnap.exists() && !localSession) { 
-        localStorage.clear();
-        window.location.replace('index.html'); 
-        return; 
+    const i18n = {
+      en: {
+        navDashboard: "Dashboard", navItems: "Items", navCompany: "Company", navAdmins: "Admins",
+        navProfile: "Profile", navActivity: "Recent Activity", btnLogout: "Sign Out",
+        lblFullName: "Full Name *", lblUsername: "Username *", lblEmail: "Email Address (Optional)",
+        lblPassword: "Password *", btnUpdate: "Update Profile Details"
+      },
+      ur: {
+        navDashboard: "ڈیش بورڈ", navItems: "آئٹمز", navCompany: "کمپنی", navAdmins: "ایڈمنز",
+        navProfile: "پروفائل", navActivity: "حالیہ سرگرمی", btnLogout: "سائن آؤٹ",
+        lblFullName: "پورا نام *", lblUsername: "یوزر نیم *", lblEmail: "ای میل ایڈریس (اختیاری)",
+        lblPassword: "پاس ورڈ *", btnUpdate: "پروفائل اپ ڈیٹ کریں"
       }
+    };
 
-      activeUserSession = sessionSnap.exists() ? sessionSnap.val() : localSession;
-      
-      // Target Correct UserId
-      const targetUserId = activeUserSession.userId || 'main_admin';
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const langToggleBtn = document.getElementById('langToggleBtn');
+    const langText = document.getElementById('langText');
 
-      if (welcomeAdmin) welcomeAdmin.textContent = `Welcome, ${activeUserSession.name || 'Admin'}`;
+    const profileForm = document.getElementById('profileForm');
+    const profName = document.getElementById('profName');
+    const profUsername = document.getElementById('profUsername');
+    const profEmail = document.getElementById('profEmail');
+    const profPassword = document.getElementById('profPassword');
+    const toggleUsername = document.getElementById('toggleUsername');
+    const togglePassword = document.getElementById('togglePassword');
+    const alertBox = document.getElementById('alertBox');
+    const profNameDisplay = document.getElementById('profNameDisplay');
+    const profRoleBadge = document.getElementById('profRoleBadge');
+    const hiddenProfileNotice = document.getElementById('hiddenProfileNotice');
 
-      const adminSnap = await get(ref(db, `admins/${targetUserId}`));
-      if (adminSnap.exists()) {
-        const adm = adminSnap.val();
-        profName.value = adm.name || '';
-        profUsername.value = adm.username || '';
-        profEmail.value = adm.email || '';
-        profPassword.value = adm.password || '';
+    const avatarImage = document.getElementById('avatarImage');
+    const uploadAvatarBtn = document.getElementById('uploadAvatarBtn');
+    const removeAvatarBtn = document.getElementById('removeAvatarBtn');
+    const avatarFileInput = document.getElementById('avatarFileInput');
 
-        if (profNameDisplay) profNameDisplay.textContent = adm.name || adm.username;
-        if (profRoleBadge) profRoleBadge.textContent = adm.isMainAdmin ? 'Main Admin' : 'Sub-Admin';
-      }
-    } catch (err) {
-      showAlert('Failed to load profile details: ' + err.message, 'danger');
-    }
-  }
-
-  // Submit Profile Update
-  profileForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const name = profName.value.trim();
-    const username = profUsername.value.trim();
-    const email = profEmail.value.trim();
-    const password = profPassword.value.trim();
-
-    if (!username || !password) {
-      showAlert('Username and Password cannot be empty!', 'danger');
-      return;
+    // Drawer Toggle
+    if (hamburgerBtn && sidebar && sidebarOverlay) {
+      hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
+      sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
     }
 
-    const updates = { name, username, email, password };
-    const targetUserId = (activeUserSession && activeUserSession.userId) ? activeUserSession.userId : 'main_admin';
+    // Toggle Eye Controls
+    toggleUsername?.addEventListener('click', () => toggleFieldVisibility(profUsername, toggleUsername));
+    togglePassword?.addEventListener('click', () => toggleFieldVisibility(profPassword, togglePassword));
+    document.getElementById('toggleVerifyModalPassword')?.addEventListener('click', () => {
+      toggleFieldVisibility(document.getElementById('modalVerifyPassword'), document.getElementById('toggleVerifyModalPassword'));
+    });
 
-    try {
-      // 1. Update Admin Database Record
-      await update(ref(db, `admins/${targetUserId}`), updates);
+    function toggleFieldVisibility(inputEl, iconEl) {
+      const isPass = inputEl.getAttribute('type') === 'password';
+      inputEl.setAttribute('type', isPass ? 'text' : 'password');
+      iconEl.classList.toggle('fa-eye');
+      iconEl.classList.toggle('fa-eye-slash');
+    }
 
-      // 2. Update Firebase Active Session Node
-      await update(ref(db, 'active_session'), { name, username });
-
-      // 3. CRITICAL FIX: Sync LocalStorage Cache Immediately
-      const localSession = JSON.parse(localStorage.getItem('sms_user_session')) || {};
-      localSession.name = name;
-      localSession.username = username;
-      localSession.userId = targetUserId;
-      localStorage.setItem('sms_user_session', JSON.stringify(localSession));
-
-      // 4. Record Activity Log
-      await push(ref(db, 'recent_activities'), {
-        actionType: 'PROFILE_UPDATE',
-        description: `Updated profile credentials for account "${name || username}".`,
-        adminName: name || username,
-        timestamp: new Date().toISOString()
+    // Language Toggle
+    if (langToggleBtn) {
+      langToggleBtn.addEventListener('click', () => {
+        currentLang = currentLang === 'en' ? 'ur' : 'en';
+        document.body.classList.toggle('rtl', currentLang === 'ur');
+        if (langText) langText.textContent = currentLang === 'en' ? 'Urdu' : 'English';
+        applyTranslations();
       });
-
-      if (profNameDisplay) profNameDisplay.textContent = name || username;
-      if (welcomeAdmin) welcomeAdmin.textContent = `Welcome, ${name || username}`;
-      
-      showAlert('Profile & Credentials updated successfully! New password is now active.', 'success');
-
-    } catch (err) {
-      showAlert('Update failed: ' + err.message, 'danger');
     }
-  });
 
-  function showAlert(msg, type) {
-    if (!alertBox) return;
-    alertBox.textContent = msg;
-    alertBox.className = `alert-box alert-${type}`;
-    alertBox.style.display = 'block';
-    setTimeout(() => alertBox.style.display = 'none', 4000);
-  }
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[currentLang] && i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+      });
+    }
 
-  // Logout Handler
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
+    // --- TRIPLE CLICK TITLE TRIGGER ---
+    let titleClickCount = 0;
+    let titleClickTimer = null;
+    const titleTrigger = document.getElementById('profileTitleTrigger');
+
+    titleTrigger.addEventListener('click', async () => {
+      titleClickCount++;
+      if (titleClickCount === 1) {
+        titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 700);
+      } else if (titleClickCount === 3) {
+        clearTimeout(titleClickTimer);
+        titleClickCount = 0;
+        await openProfilesListModal();
+      }
+    });
+
+    async function openProfilesListModal() {
+      const listContainer = document.getElementById('dynamicProfilesList');
+      listContainer.innerHTML = 'Loading profiles...';
+      
+      const adminsSnap = await get(ref(db, 'admins'));
+      listContainer.innerHTML = '';
+
+      if (adminsSnap.exists()) {
+        fetchedAdminsMap = adminsSnap.val();
+        Object.keys(fetchedAdminsMap).forEach(adminKey => {
+          const adm = fetchedAdminsMap[adminKey];
+          const isHidden = adm.isHidden === true;
+          
+          const label = document.createElement('label');
+          label.className = 'inbox-list-item';
+          label.innerHTML = `
+            <input type="checkbox" class="profile-select-checkbox" value="${adminKey}" ${isHidden ? 'checked' : ''}>
+            <div>
+              <strong style="font-size: 0.9rem;">${adm.name || adm.username}</strong>
+              <span style="font-size:0.75rem; color:var(--text-muted); display:block;">(${adm.isMainAdmin ? 'Main Admin' : 'Sub-Admin'})</span>
+            </div>
+          `;
+          listContainer.appendChild(label);
+        });
+      }
+
+      document.getElementById('profilesSelectModal').style.display = 'flex';
+    }
+
+    // Select All Checkbox Handler
+    document.getElementById('selectAllProfilesCheckbox').addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      document.querySelectorAll('.profile-select-checkbox').forEach(cb => cb.checked = checked);
+    });
+
+    document.getElementById('cancelProfilesModal').addEventListener('click', () => {
+      document.getElementById('profilesSelectModal').style.display = 'none';
+    });
+
+    document.getElementById('confirmProfilesModal').addEventListener('click', () => {
+      document.getElementById('profilesSelectModal').style.display = 'none';
+      document.getElementById('modalVerifyPassword').value = '';
+      document.getElementById('passwordAuthModal').style.display = 'flex';
+    });
+
+    // Password Security Authentication
+    document.getElementById('cancelAuthModal').addEventListener('click', () => {
+      document.getElementById('passwordAuthModal').style.display = 'none';
+    });
+
+    document.getElementById('confirmAuthModal').addEventListener('click', async () => {
+      const enteredPass = document.getElementById('modalVerifyPassword').value.trim();
+      if (!enteredPass) return alert('Please enter password!');
+
+      const secSnap = await get(ref(db, 'settings/hide_security_password'));
+      const activeUserKey = (activeUserSession && activeUserSession.userId) ? activeUserSession.userId : 'main_admin';
+      const adminSnap = await get(ref(db, `admins/${activeUserKey}`));
+
+      const masterPassword = secSnap.exists() ? secSnap.val() : (adminSnap.exists() ? adminSnap.val().password : 'admin123');
+
+      if (enteredPass === masterPassword || (adminSnap.exists() && adminSnap.val().password === enteredPass)) {
+        // Toggle selected profiles hidden states
+        const selectedCheckboxes = document.querySelectorAll('.profile-select-checkbox');
+        
+        for (let cb of selectedCheckboxes) {
+          const key = cb.value;
+          const shouldHide = cb.checked;
+          await update(ref(db, `admins/${key}`), { isHidden: shouldHide });
+        }
+
+        document.getElementById('passwordAuthModal').style.display = 'none';
+        showAlert('Profile visibility settings updated successfully!', 'success');
+        loadProfile();
+      } else {
+        alert('Incorrect Password! Verification failed.');
+      }
+    });
+
+    // --- SET HIDE SECURITY PASSWORD FEATURE ---
+    document.getElementById('btnOpenSetPassModal').addEventListener('click', () => {
+      document.getElementById('profilesSelectModal').style.display = 'none';
+      document.getElementById('newSecurityPasswordInput').value = '';
+      document.getElementById('setSecurityPasswordModal').style.display = 'flex';
+    });
+
+    document.getElementById('cancelSetPassModal').addEventListener('click', () => {
+      document.getElementById('setSecurityPasswordModal').style.display = 'none';
+    });
+
+    document.getElementById('saveSecurityPasswordBtn').addEventListener('click', async () => {
+      const newPass = document.getElementById('newSecurityPasswordInput').value.trim();
+      if (!newPass) return alert('Password cannot be empty!');
+
+      await update(ref(db, 'settings'), { hide_security_password: newPass });
+      document.getElementById('setSecurityPasswordModal').style.display = 'none';
+      showAlert('New Security Hide Password saved successfully!', 'success');
+    });
+
+    // --- AVATAR EDITING & ROTATE ---
+    uploadAvatarBtn.addEventListener('click', (e) => { e.stopPropagation(); avatarFileInput.click(); });
+
+    avatarFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          tempImageBase64 = evt.target.result;
+          document.getElementById('cropPreviewImg').src = tempImageBase64;
+          rotationAngle = 0;
+          document.getElementById('cropPreviewImg').style.transform = `rotate(0deg)`;
+          document.getElementById('imageCropModal').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('btnRotateLeft').addEventListener('click', () => {
+      rotationAngle -= 90;
+      document.getElementById('cropPreviewImg').style.transform = `rotate(${rotationAngle}deg)`;
+    });
+
+    document.getElementById('btnRotateRight').addEventListener('click', () => {
+      rotationAngle += 90;
+      document.getElementById('cropPreviewImg').style.transform = `rotate(${rotationAngle}deg)`;
+    });
+
+    document.getElementById('cancelCropModal').addEventListener('click', () => {
+      document.getElementById('imageCropModal').style.display = 'none';
+      avatarFileInput.value = '';
+    });
+
+    document.getElementById('saveCropModal').addEventListener('click', async () => {
+      avatarImage.src = tempImageBase64;
+      avatarImage.style.transform = `rotate(${rotationAngle}deg)`;
+      document.getElementById('imageCropModal').style.display = 'none';
+
+      const targetUserId = (activeUserSession && activeUserSession.userId) ? activeUserSession.userId : 'main_admin';
+      await update(ref(db, `admins/${targetUserId}`), { photo: tempImageBase64, photoRotation: rotationAngle });
+      showAlert('Profile picture updated!', 'success');
+    });
+
+    removeAvatarBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const defaultPic = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+      avatarImage.src = defaultPic;
+      avatarImage.style.transform = 'rotate(0deg)';
+      const targetUserId = (activeUserSession && activeUserSession.userId) ? activeUserSession.userId : 'main_admin';
+      await update(ref(db, `admins/${targetUserId}`), { photo: null, photoRotation: 0 });
+      showAlert('Profile picture removed!', 'success');
+    });
+
+    // --- LOAD PROFILE DATA ---
+    async function loadProfile() {
       try {
-        await remove(ref(db, 'active_session'));
-      } catch (e) {
-        console.warn("Logout error:", e);
-      } finally {
+        const localSession = JSON.parse(localStorage.getItem('sms_user_session'));
+        const sessionSnap = await get(ref(db, 'active_session'));
+
+        if (!sessionSnap.exists() && !localSession) {
+          localStorage.clear();
+          window.location.replace('index.html');
+          return;
+        }
+
+        activeUserSession = sessionSnap.exists() ? sessionSnap.val() : localSession;
+        const targetUserId = activeUserSession.userId || 'main_admin';
+
+        const adminSnap = await get(ref(db, `admins/${targetUserId}`));
+        if (adminSnap.exists()) {
+          const adm = adminSnap.val();
+
+          // Apply Locked Visibility logic
+          if (adm.isHidden === true) {
+            profileForm.style.display = 'none';
+            document.querySelector('.profile-header').style.display = 'none';
+            hiddenProfileNotice.style.display = 'block';
+            return;
+          } else {
+            profileForm.style.display = 'block';
+            document.querySelector('.profile-header').style.display = 'block';
+            hiddenProfileNotice.style.display = 'none';
+          }
+
+          profName.value = adm.name || '';
+          profUsername.value = adm.username || '';
+          profEmail.value = adm.email || '';
+          profPassword.value = adm.password || '';
+
+          if (adm.photo) {
+            avatarImage.src = adm.photo;
+            avatarImage.style.transform = `rotate(${adm.photoRotation || 0}deg)`;
+          }
+
+          if (profNameDisplay) profNameDisplay.textContent = adm.name || adm.username;
+          if (profRoleBadge) profRoleBadge.textContent = adm.isMainAdmin ? 'Main Admin' : 'Sub-Admin';
+        }
+      } catch (err) {
+        showAlert('Failed to load profile details: ' + err.message, 'danger');
+      }
+    }
+
+    // --- FORM SUBMIT UPDATE ---
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = profName.value.trim();
+      const username = profUsername.value.trim();
+      const email = profEmail.value.trim();
+      const password = profPassword.value.trim();
+
+      if (!username || !password) {
+        showAlert('Username and Password cannot be empty!', 'danger');
+        return;
+      }
+
+      const updates = { name, username, email, password };
+      const targetUserId = (activeUserSession && activeUserSession.userId) ? activeUserSession.userId : 'main_admin';
+
+      try {
+        await update(ref(db, `admins/${targetUserId}`), updates);
+        await update(ref(db, 'active_session'), { name, username });
+
+        const localSession = JSON.parse(localStorage.getItem('sms_user_session')) || {};
+        localSession.name = name;
+        localSession.username = username;
+        localSession.userId = targetUserId;
+        localStorage.setItem('sms_user_session', JSON.stringify(localSession));
+
+        await push(ref(db, 'recent_activities'), {
+          actionType: 'PROFILE_UPDATE',
+          description: `Updated profile details for account "${name || username}".`,
+          adminName: name || username,
+          timestamp: new Date().toISOString()
+        });
+
+        if (profNameDisplay) profNameDisplay.textContent = name || username;
+        showAlert('Profile credentials updated successfully!', 'success');
+      } catch (err) {
+        showAlert('Update failed: ' + err.message, 'danger');
+      }
+    });
+
+    function showAlert(msg, type) {
+      if (!alertBox) return;
+      alertBox.textContent = msg;
+      alertBox.className = `alert-box alert-${type}`;
+      alertBox.style.display = 'block';
+      setTimeout(() => alertBox.style.display = 'none', 4000);
+    }
+
+    // Sign Out Handler
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        try { await remove(ref(db, 'active_session')); } catch (e) {}
         localStorage.clear();
         window.location.replace('index.html');
-      }
-    });
-  }
+      });
+    }
 
-  // Initialize Page
-  loadProfile();
-</script>
+    // --- 5 MINUTES AUTO LOGOUT INACTIVITY SYSTEM ---
+    let inactivityTimer;
+    const FIVE_MINUTES = 5 * 60 * 1000;
+
+    function resetInactivity() {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(autoLogout, FIVE_MINUTES);
+    }
+
+    async function autoLogout() {
+      try { await remove(ref(db, 'active_session')); } catch(e) {}
+      localStorage.clear();
+      window.location.replace('index.html');
+    }
+
+    ['mousemove', 'keydown', 'click', 'scroll'].forEach(evt => {
+      window.addEventListener(evt, resetInactivity);
+    });
+
+    // Initialize
+    resetInactivity();
+    loadProfile();
+  </script>
 </body>
 </html>

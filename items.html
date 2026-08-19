@@ -205,6 +205,7 @@
       
       .view-toggle-btns { align-self: flex-end; }
     }
+
   </style>
 </head>
 <body>
@@ -245,7 +246,8 @@
     <main class="content-area">
       <!-- Page Title & Toolbar -->
       <div class="page-title-bar">
-        <h1>Item Inventory</h1>
+        <!-- Hidden Trigger: 3 Clicks on title to hide/show data -->
+        <h1 id="secretProtectionTrigger" style="cursor: pointer; user-select: none;">Item Inventory</h1>
         <div class="action-toolbar">
           <button class="btn btn-primary" id="openAddModalBtn"><i class="fa-solid fa-plus"></i> Add Item</button>
           <button class="btn btn-secondary" id="openCsvModalBtn"><i class="fa-solid fa-file-csv"></i> Import CSV</button>
@@ -253,22 +255,37 @@
         </div>
       </div>
 
-      <!-- Filter & Search Controls -->
-      <div class="filter-card">
-        <div class="search-box-group">
-          <select class="search-type-select" id="searchCriteria">
+      <!-- Filter & Search Controls (Horizontal Responsive Alignment) -->
+      <div class="filter-card" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+        <div class="search-box-group" style="display: flex; flex-direction: row; align-items: center; gap: 8px; flex: 1; min-width: 280px; flex-wrap: wrap;">
+          <select class="search-type-select" id="searchCriteria" style="min-width: 180px; height: 38px; padding: 0 10px;">
             <option value="name">Search by Item Name</option>
             <option value="company">Search by Company</option>
-            <option value="sellBox">Search by Price per box</option>
+            <option value="sellBox">Search by sale Price per box</option>
             <option value="totalSellBox">Search by Total sell Price per Box</option>
             <option value="sellCotton">Search by Sell Price/Cotton</option>
+            <option value="mobile">Search by Mobile No</option>
+            <option value="date">Search by Date</option>
           </select>
-          <input type="text" class="search-input" id="searchInput" placeholder="Type here to search..." autocomplete="off">
+
+          <!-- Text Search Field -->
+          <input type="text" class="search-input" id="searchInput" placeholder="Type here to search..." autocomplete="off" style="flex: 1; min-width: 180px; height: 38px; padding: 0 12px;">
+          
+          <!-- Date Filter Input (Hidden by default) -->
+          <div id="dateFilterWrapper" style="display: none; align-items: center; gap: 6px;">
+            <input type="date" class="search-input" id="searchDateInput" min="2026-08-14" style="height: 38px; padding: 0 10px;">
+            <button class="btn btn-secondary" id="clearDateBtn" style="height: 38px; padding: 0 12px;" title="Clear Date Filter"><i class="fa-solid fa-xmark"></i></button>
+          </div>
         </div>
 
-        <div class="view-toggle-btns">
-          <button class="view-btn active" id="viewTableBtn" title="Table View"><i class="fa-solid fa-table-list"></i></button>
-          <button class="view-btn" id="viewCardBtn" title="Card View"><i class="fa-solid fa-grip"></i></button>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span id="itemsCountBadge" style="font-size: 0.85rem; font-weight: 600; background: #e2e8f0; padding: 6px 12px; border-radius: 20px; color: #334155; white-space: nowrap;">
+            Total Items: 0
+          </span>
+          <div class="view-toggle-btns" style="display: flex; gap: 4px;">
+            <button class="view-btn active" id="viewTableBtn" title="Table View"><i class="fa-solid fa-table-list"></i></button>
+            <button class="view-btn" id="viewCardBtn" title="Card View"><i class="fa-solid fa-grip"></i></button>
+          </div>
         </div>
       </div>
 
@@ -305,15 +322,15 @@
           </div>
           <div class="form-group">
             <label>Cotton Pieces (Qty) </label>
-            <input type="number" class="form-control" id="cottonPieces"  placeholder="e.g. 12">
+            <input type="number" class="form-control" id="cottonPieces" placeholder="e.g. 12">
           </div>
           <div class="form-group">
             <label>Pur. Box Price (Auto Divided)</label>
             <input type="number" step="0.01" class="form-control" id="boxPrice" readonly placeholder="Calculated automatically">
           </div>
           <div class="form-group">
-            <label>Price per box </label>
-            <input type="number" step="0.01" class="form-control" id="sellBox"  placeholder="0.00">
+            <label>Sale Price per box </label>
+            <input type="number" step="0.01" class="form-control" id="sellBox" placeholder="0.00">
           </div>
           <div class="form-group">
             <label>Total sell price/box</label>
@@ -322,6 +339,10 @@
           <div class="form-group">
             <label>Sell Price / Cotton (Auto Calculated)</label>
             <input type="number" step="0.01" class="form-control" id="sellCotton" readonly placeholder="Calculated automatically">
+          </div>
+          <div class="form-group">
+            <label>Mobile Number (Optional)</label>
+            <input type="tel" class="form-control" id="itemMobile" placeholder="e.g. 03001234567">
           </div>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px;">
@@ -341,15 +362,14 @@
       </div>
       <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">Choose an option below to view required CSV structure or import your file:</p>
       
-      <!-- Format Details Box (Hidden by Default) -->
       <div id="csvFormatBox" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; padding:12px; border-radius:6px; margin-bottom:16px; font-size:0.85rem;">
         <strong style="color:var(--primary-color);">CSV Required Format:</strong>
         <p style="margin:6px 0 10px 0; font-family:monospace; font-size:0.8rem; background:#fff; padding:6px; border:1px solid #e2e8f0; border-radius:4px;">
-          Item Name, Company, Purchase Price / Cotton, Cotton Pieces, Price per box, Total sell price/box
+          Item Name, Company, Purchase Price / Cotton, Cotton Pieces, Sale price per box, Total sell price/box, Mobile Number
         </p>
         <strong>Example Row:</strong>
         <p style="margin:6px 0 0 0; font-family:monospace; font-size:0.8rem; background:#fff; padding:6px; border:1px solid #e2e8f0; border-radius:4px;">
-          Sooper Biscuit, Peek Freans, 1200, 12, 115, 120
+          Sooper Biscuit, Peek Freans, 1200, 12, 115, 120, 03001234567
         </p>
       </div>
 
@@ -373,11 +393,13 @@
       <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Select additional columns to include in the Landscape A4 PDF export:</p>
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
         <label><input type="checkbox" checked disabled> Item Name & Company (Default)</label>
-        <label><input type="checkbox" checked disabled> Price per box (Default)</label>
+        <label><input type="checkbox" checked disabled> Sale Price per box (Default)</label>
+        <label><input type="checkbox" id="pdfColCottonPieces"> Cotton Pieces</label>
         <label><input type="checkbox" id="pdfColTotalSellBox"> Total sell price/box</label>
         <label><input type="checkbox" id="pdfColPurchaseCotton"> Purchase Price / Cotton</label>
         <label><input type="checkbox" id="pdfColPurchaseBox"> Purchase Price / Box</label>
         <label><input type="checkbox" id="pdfColSellCotton"> Sell Price / Cotton</label>
+        <label><input type="checkbox" id="pdfColMobile"> Mobile Number</label>
         <label><input type="checkbox" id="pdfColDateTime"> Date and Time</label>
         <label><input type="checkbox" id="pdfColAdmin"> Added/Edited By Admin Name</label>
       </div>
@@ -408,7 +430,10 @@
 
     let activeAdmin = null;
     let rawItemsData = [];
-    let activeViewMode = 'table'; // 'table' or 'card'
+    
+    let activeViewMode = localStorage.getItem('sms_view_mode') || 'table';
+    let isHiddenProtectionActive = localStorage.getItem('sms_items_hidden') === 'true';
+    let secretClickCount = 0;
 
     // DOM References
     const sidebar = document.getElementById('sidebar');
@@ -420,6 +445,11 @@
     const itemsContainer = document.getElementById('itemsContainer');
     const searchInput = document.getElementById('searchInput');
     const searchCriteria = document.getElementById('searchCriteria');
+    const dateFilterWrapper = document.getElementById('dateFilterWrapper');
+    const searchDateInput = document.getElementById('searchDateInput');
+    const clearDateBtn = document.getElementById('clearDateBtn');
+    const itemsCountBadge = document.getElementById('itemsCountBadge');
+    
     const viewTableBtn = document.getElementById('viewTableBtn');
     const viewCardBtn = document.getElementById('viewCardBtn');
     
@@ -436,6 +466,7 @@
     const sellBox = document.getElementById('sellBox');
     const sellCotton = document.getElementById('sellCotton');
     const totalSellBox = document.getElementById('totalSellBox');
+    const itemMobile = document.getElementById('itemMobile');
 
     const csvModal = document.getElementById('csvModal');
     const openCsvModalBtn = document.getElementById('openCsvModalBtn');
@@ -449,12 +480,43 @@
     const closePdfModalBtn = document.getElementById('closePdfModalBtn');
     const btnViewPdf = document.getElementById('btnViewPdf');
     const btnDownloadPdf = document.getElementById('btnDownloadPdf');
+    const secretProtectionTrigger = document.getElementById('secretProtectionTrigger');
 
-    // Drawer Responsiveness
+    if (activeViewMode === 'card') {
+      viewCardBtn.classList.add('active');
+      viewTableBtn.classList.remove('active');
+    } else {
+      viewTableBtn.classList.add('active');
+      viewCardBtn.classList.remove('active');
+    }
+
     hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
     sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
 
-    // Authentication Guard
+    // 5 Minutes Inactivity / Background Timer Logout
+    let backgroundTimer = null;
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        backgroundTimer = setTimeout(async () => {
+          await executeLogout();
+        }, FIVE_MINUTES_MS);
+      } else {
+        if (backgroundTimer) {
+          clearTimeout(backgroundTimer);
+          backgroundTimer = null;
+        }
+      }
+    });
+
+    async function executeLogout() {
+      try {
+        await remove(ref(db, 'active_session'));
+      } catch (e) { console.error(e); }
+      window.location.replace('index.html');
+    }
+
     async function verifyAuth() {
       try {
         const snap = await get(ref(db, 'active_session'));
@@ -465,11 +527,27 @@
           activeAdmin = adminSnap.val();
           activeAdmin.key = session.userId;
           navAdminName.textContent = activeAdmin.name;
+
+          // Check database hide settings on load/re-login
+          try {
+            const adminKey = activeAdmin.name.replace(/\s+/g, '_');
+            const [globalSnap, adminSnapHide] = await Promise.all([
+              get(ref(db, 'settings/global_hide_items')),
+              get(ref(db, `settings/admin_hide_items/${adminKey}`))
+            ]);
+
+            if (globalSnap.exists() && globalSnap.val() === true) {
+              isHiddenProtectionActive = true;
+            } else if (adminSnapHide.exists() && adminSnapHide.val() === true) {
+              isHiddenProtectionActive = true;
+            }
+            localStorage.setItem('sms_items_hidden', isHiddenProtectionActive);
+            renderItems();
+          } catch (e) { console.warn("Failed to fetch hide status from Firebase:", e); }
         } else { window.location.replace('index.html'); }
       } catch (err) { console.error("Auth check failed:", err); }
     }
 
-    // Auto calculate Box Price & Sell Price / Cotton
     function calculateBoxPrice() {
       const purchase = parseFloat(purchaseCotton.value) || 0;
       const pieces = parseFloat(cottonPieces.value) || 0;
@@ -495,7 +573,6 @@
     cottonPieces.addEventListener('input', calculateBoxPrice);
     sellBox.addEventListener('input', calculateSellCotton);
 
-    // Sync Companies dropdown
     function loadCompaniesDropdown() {
       onValue(ref(db, 'companies'), (snap) => {
         itemCompanySelect.innerHTML = '<option value="">-- Select Company --</option>';
@@ -510,7 +587,6 @@
       });
     }
 
-    // Load & Alphabetically Sort Items A-Z
     function syncItemsData() {
       onValue(ref(db, 'items'), (snap) => {
         rawItemsData = [];
@@ -525,20 +601,64 @@
       });
     }
 
-    // Render Items
+    function formatDateTime12Hr(isoString) {
+      if (!isoString) return '-';
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return '-';
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      let hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      
+      return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+    }
+
     function renderItems() {
-      const query = searchInput.value.toLowerCase().trim();
+      if (isHiddenProtectionActive) {
+        itemsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:1.1rem; font-weight:600;">No items available till now.</div>`;
+        itemsCountBadge.textContent = `Total Items: 0`;
+        return;
+      }
+
+     const query = searchInput.value.toLowerCase().trim();
       const criteria = searchCriteria.value;
+      const selectedDate = searchDateInput.value;
 
       const filtered = rawItemsData.filter(item => {
-        if (!query) return true;
-        if (criteria === 'name') return (item.itemName || '').toLowerCase().includes(query);
-        if (criteria === 'company') return (item.company || '').toLowerCase().includes(query);
-        if (criteria === 'sellCotton') return String(item.sellCotton || '').includes(query);
-        if (criteria === 'sellBox') return String(item.sellBox || '').includes(query);
-        if (criteria === 'totalSellBox') return String(item.totalSellBox || '').includes(query);
-        return true;
+        let matchesSearch = true;
+        let matchesDate = true;
+
+        if (criteria === 'date') {
+          if (selectedDate) {
+            const itemDateISO = item.createdAt || item.updatedAt;
+            if (itemDateISO) {
+              const itemDate = new Date(itemDateISO).toISOString().split('T')[0];
+              matchesDate = (itemDate === selectedDate);
+            } else {
+              matchesDate = false;
+            }
+          }
+        } else {
+          if (query) {
+            if (criteria === 'name') matchesSearch = (item.itemName || '').toLowerCase().includes(query);
+            else if (criteria === 'company') matchesSearch = (item.company || '').toLowerCase().includes(query);
+            else if (criteria === 'sellCotton') matchesSearch = String(item.sellCotton || '').includes(query);
+            else if (criteria === 'sellBox') matchesSearch = String(item.sellBox || '').includes(query);
+            else if (criteria === 'totalSellBox') matchesSearch = String(item.totalSellBox || '').includes(query);
+            else if (criteria === 'mobile') matchesSearch = String(item.mobile || '').toLowerCase().includes(query);
+          }
+        }
+
+        return matchesSearch && matchesDate;
       });
+
+      itemsCountBadge.textContent = `Total Items: ${filtered.length}`;
 
       if (filtered.length === 0) {
         itemsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">No items found matching your criteria.</div>`;
@@ -554,10 +674,12 @@
                   <th>Item Name</th>
                   <th>Company</th>
                   <th>Pur. Price/Cotton</th>
+                  <th>Cotton Pcs</th>
                   <th>Box Price(pur)</th>
-                  <th>Price per box</th>
+                  <th>Sale Price per box</th>
                   <th>Total sell price/box</th>
                   <th>Sell/Cotton</th>
+                  <th>Mobile No</th>
                   <th>Last Updated By</th>
                   <th>Actions</th>
                 </tr>
@@ -570,10 +692,12 @@
               <td><strong>${item.itemName || ''}</strong></td>
               <td>${item.company || '-'}</td>
               <td>${item.purchaseCotton || 0}</td>
+              <td>${item.cottonPieces || 0}</td>
               <td>${item.boxPrice || 0}</td>
               <td>${item.sellBox || 0}</td>
               <td>${item.totalSellBox || 0}</td>
               <td>${item.sellCotton || 0}</td>
+              <td>${item.mobile || '-'}</td>
               <td><small>${item.updatedBy || item.createdBy || 'Admin'}</small></td>
               <td>
                 <button class="btn btn-secondary" onclick="window.editItem('${item.id}')" style="padding:4px 8px;"><i class="fa-solid fa-pen"></i></button>
@@ -587,6 +711,7 @@
       } else {
         let cardsHtml = `<div class="cards-grid">`;
         filtered.forEach(item => {
+          const formattedTime = formatDateTime12Hr(item.createdAt || item.updatedAt);
           cardsHtml += `
             <div class="item-card">
               <div class="card-header">
@@ -596,12 +721,15 @@
                 </div>
               </div>
               <div class="card-body">
-                <p><span>Pur. Cotton:</span> <strong>${item.purchaseCotton || 0}</strong></p>
-                <p><span>Box Price(Purchase):</span> <strong>${item.boxPrice || 0}</strong></p>
-                <p><span>Price per box:</span> <strong style="color:var(--primary-color)">${item.sellBox || 0}</strong></p>
+                <p><span>Cotton Pieces:</span> ${item.cottonPieces || 0}</p>
+                <p><span>Purchase Price / Cotton:</span> <strong>${item.purchaseCotton || 0}</strong></p>
+                <p><span>Purchase price / Box:</span> <strong>${item.boxPrice || 0}</strong></p>
+                <p><span>Sale Price per box:</span> <strong style="color:var(--primary-color)">${item.sellBox || 0}</strong></p>
                 <p><span>Total sell price/box:</span> <strong>${item.totalSellBox || 0}</strong></p>
                 <p><span>Sell Cotton:</span> <strong>${item.sellCotton || 0}</strong></p>
+                <p><span>Mobile:</span> <strong>${item.mobile || '-'}</strong></p>
                 <p><span>Admin:</span> <strong>${item.updatedBy || item.createdBy || 'Admin'}</strong></p>
+                <p style="font-size: 0.72rem; color: #64748b; margin-top: 6px;"><span>Added/Updated:</span> ${formattedTime}</p>
               </div>
               <div class="card-actions">
                 <button class="btn btn-secondary" onclick="window.editItem('${item.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
@@ -615,13 +743,111 @@
       }
     }
 
-    // View Toggles
-    viewTableBtn.addEventListener('click', () => { activeViewMode = 'table'; viewTableBtn.classList.add('active'); viewCardBtn.classList.remove('active'); renderItems(); });
-    viewCardBtn.addEventListener('click', () => { activeViewMode = 'card'; viewCardBtn.classList.add('active'); viewTableBtn.classList.remove('active'); renderItems(); });
-    searchInput.addEventListener('input', renderItems);
-    searchCriteria.addEventListener('change', renderItems);
+    // Dynamic Creation of Hide Settings Modal Box
+    const hideModalHtml = `
+      <div id="hideSettingsModal" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; max-width:400px; width:90%; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+          <h3 style="margin-top:0; color:#1e3a8a;">Item Visibility Control</h3>
+          <p style="font-size:0.9rem; color:#475569;">Aap in items ko kis portal se hide/unhide karna chahte hain?</p>
+          <div style="margin:16px 0;">
+            <label style="display:block; margin-bottom:8px; cursor:pointer;">
+              <input type="radio" name="hideScope" value="all" checked> <strong>All Portals / Admins</strong>
+            </label>
+            <label style="display:block; cursor:pointer;">
+              <input type="radio" name="hideScope" value="specific"> <strong>Current Portal Only</strong> (${activeAdmin ? activeAdmin.name : 'Current Admin'})
+            </label>
+          </div>
+          <div style="margin-top:16px; font-size:0.85rem; color:#64748b;">
+            Current Status: <span id="currentHideStateText"></span>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+            <button id="cancelHideModalBtn" class="btn btn-secondary">Cancel</button>
+            <button id="confirmHideToggleBtn" class="btn btn-primary">Apply Change</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', hideModalHtml);
 
-    // Modal Control Actions
+    const hideSettingsModal = document.getElementById('hideSettingsModal');
+    const cancelHideModalBtn = document.getElementById('cancelHideModalBtn');
+    const confirmHideToggleBtn = document.getElementById('confirmHideToggleBtn');
+    const currentHideStateText = document.getElementById('currentHideStateText');
+
+    secretProtectionTrigger.addEventListener('click', () => {
+      secretClickCount++;
+      if (secretClickCount === 3) {
+        secretClickCount = 0;
+        currentHideStateText.textContent = isHiddenProtectionActive ? "HIDDEN" : "VISIBLE";
+        currentHideStateText.style.color = isHiddenProtectionActive ? "#dc2626" : "#16a34a";
+        hideSettingsModal.style.display = 'flex';
+      }
+      setTimeout(() => { secretClickCount = 0; }, 1500);
+    });
+
+    cancelHideModalBtn.addEventListener('click', () => {
+      hideSettingsModal.style.display = 'none';
+    });
+
+    confirmHideToggleBtn.addEventListener('click', async () => {
+      const selectedScope = document.querySelector('input[name="hideScope"]:checked').value;
+      const targetState = !isHiddenProtectionActive;
+
+      isHiddenProtectionActive = targetState;
+      
+      // Save locally to maintain state across re-logins
+      localStorage.setItem('sms_items_hidden', isHiddenProtectionActive);
+      
+      // Sync globally to Firebase database if needed
+      try {
+        if (selectedScope === 'all') {
+          await set(ref(db, 'settings/global_hide_items'), isHiddenProtectionActive);
+        } else {
+          const adminKey = activeAdmin ? activeAdmin.name.replace(/\s+/g, '_') : 'default';
+          await set(ref(db, `settings/admin_hide_items/${adminKey}`), isHiddenProtectionActive);
+        }
+      } catch (err) {
+        console.warn("Could not sync hide settings to server:", err);
+      }
+
+      hideSettingsModal.style.display = 'none';
+      renderItems();
+    });
+
+    viewTableBtn.addEventListener('click', () => { 
+      activeViewMode = 'table'; 
+      localStorage.setItem('sms_view_mode', 'table');
+      viewTableBtn.classList.add('active'); 
+      viewCardBtn.classList.remove('active'); 
+      renderItems(); 
+    });
+
+    viewCardBtn.addEventListener('click', () => { 
+      activeViewMode = 'card'; 
+      localStorage.setItem('sms_view_mode', 'card');
+      viewCardBtn.classList.add('active'); 
+      viewTableBtn.classList.remove('active'); 
+      renderItems(); 
+    });
+
+    searchCriteria.addEventListener('change', () => {
+      if (searchCriteria.value === 'date') {
+        searchInput.style.display = 'none';
+        dateFilterWrapper.style.display = 'flex';
+      } else {
+        searchInput.style.display = 'block';
+        dateFilterWrapper.style.display = 'none';
+      }
+      renderItems();
+    });
+
+    searchInput.addEventListener('input', renderItems);
+    searchDateInput.addEventListener('change', renderItems);
+    clearDateBtn.addEventListener('click', () => {
+      searchDateInput.value = '';
+      renderItems();
+    });
+
     openAddModalBtn.addEventListener('click', () => {
       itemForm.reset();
       document.getElementById('itemId').value = '';
@@ -631,7 +857,6 @@
     closeModalBtn.addEventListener('click', () => itemModal.classList.remove('active'));
     cancelModalBtn.addEventListener('click', () => itemModal.classList.remove('active'));
 
-    // CSV Modal Handlers
     openCsvModalBtn.addEventListener('click', () => {
       csvFormatBox.style.display = 'none';
       csvModal.classList.add('active');
@@ -642,7 +867,6 @@
       csvFormatBox.style.display = csvFormatBox.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Save/Update Item Functionality
     itemForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const id = document.getElementById('itemId').value;
@@ -654,6 +878,7 @@
       const sellB = parseFloat(sellBox.value) || 0;
       const totalSellB = parseFloat(totalSellBox.value) || 0;
       const sellC = parseFloat(sellCotton.value) || (pieces * sellB);
+      const mobile = itemMobile.value.trim();
 
       const timestamp = new Date().toISOString();
       const adminName = activeAdmin ? activeAdmin.name : 'SMS Admin';
@@ -661,13 +886,13 @@
       const itemPayload = {
         itemName, company, purchaseCotton: purchaseC, cottonPieces: pieces,
         boxPrice: boxP, sellBox: sellB, totalSellBox: totalSellB, sellCotton: sellC,
-        updatedAt: timestamp, updatedBy: adminName
+        mobile: mobile, updatedAt: timestamp, updatedBy: adminName
       };
 
       try {
         if (id) {
           await set(ref(db, `items/${id}`), { ...itemPayload, createdAt: timestamp, createdBy: adminName });
-          await logActivity('EDIT', `Updated item "${itemName}" prices.`, adminName);
+          await logActivity('EDIT', `Updated item "${itemName}" details.`, adminName);
         } else {
           itemPayload.createdAt = timestamp;
           itemPayload.createdBy = adminName;
@@ -678,7 +903,6 @@
       } catch (err) { alert('Operation failed: ' + err.message); }
     });
 
-    // Global Functions
     window.editItem = (id) => {
       const item = rawItemsData.find(i => i.id === id);
       if (!item) return;
@@ -691,6 +915,7 @@
       sellBox.value = item.sellBox || '';
       totalSellBox.value = item.totalSellBox || '';
       sellCotton.value = item.sellCotton || '';
+      itemMobile.value = item.mobile || '';
       document.getElementById('modalTitle').textContent = 'Edit Item Details';
       itemModal.classList.add('active');
     };
@@ -704,14 +929,12 @@
       }
     };
 
-    // Logging Activity
     async function logActivity(actionType, description, adminName) {
       await push(ref(db, 'recent_activities'), {
         actionType, description, adminName, timestamp: new Date().toISOString()
       });
     }
 
-    // CSV Bulk Import Processing
     csvFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -735,13 +958,14 @@
             const pcs = parseInt(cols[3]) || 1;
             const priceBox = parseFloat(cols[4]) || 0;
             const totalSellB = parseFloat(cols[5]) || 0;
+            const mob = cols[6] || '';
             const calcSellCotton = (pcs * priceBox).toFixed(2);
 
             await push(ref(db, 'items'), {
               itemName: cols[0], company: cols[1] || '', purchaseCotton: pur,
               cottonPieces: pcs, boxPrice: (pur / pcs).toFixed(2),
               sellBox: priceBox, totalSellBox: totalSellB, sellCotton: parseFloat(calcSellCotton),
-              createdAt: new Date().toISOString(), createdBy: activeAdmin ? activeAdmin.name : 'CSV Import'
+              mobile: mob, createdAt: new Date().toISOString(), createdBy: activeAdmin ? activeAdmin.name : 'CSV Import'
             });
             importCount++;
           }
@@ -759,11 +983,22 @@
       reader.readAsText(file);
     });
 
-    // PDF Modal Controls & Generator
-    openPdfModalBtn.addEventListener('click', () => pdfModal.classList.add('active'));
+    openPdfModalBtn.addEventListener('click', () => {
+      if (isHiddenProtectionActive) {
+        alert("No items available till now.");
+        return;
+      }
+      pdfModal.classList.add('active');
+    });
     closePdfModalBtn.addEventListener('click', () => pdfModal.classList.remove('active'));
 
+    // PDF Generator with Dynamic Cell Widths for Long/Urdu Texts
     async function generatePDF(isDownload) {
+      if (isHiddenProtectionActive) {
+        alert("No items available till now.");
+        return;
+      }
+
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
@@ -787,30 +1022,36 @@
         console.warn("Could not load Urdu font, falling back to standard font:", err);
       }
 
-      const headers = ['Item Name', 'Company', 'Price per box'];
+      const headers = ['Item Name', 'Company', 'Sale price per box'];
+      if (document.getElementById('pdfColCottonPieces').checked) headers.push('Cotton Pcs');
       if (document.getElementById('pdfColTotalSellBox').checked) headers.push('Total sell price/box');
       if (document.getElementById('pdfColPurchaseCotton').checked) headers.push('Pur. Price/Cotton');
       if (document.getElementById('pdfColPurchaseBox').checked) headers.push('Box Price');
       if (document.getElementById('pdfColSellCotton').checked) headers.push('Sell Price/Cotton');
+      if (document.getElementById('pdfColMobile').checked) headers.push('Mobile No');
       if (document.getElementById('pdfColDateTime').checked) headers.push('Date & Time');
       if (document.getElementById('pdfColAdmin').checked) headers.push('Added/Edited By');
 
       const rows = rawItemsData.map(item => {
         const row = [item.itemName || '', item.company || '-', `${item.sellBox || 0}`];
+        if (document.getElementById('pdfColCottonPieces').checked) row.push(`${item.cottonPieces || 0}`);
         if (document.getElementById('pdfColTotalSellBox').checked) row.push(`${item.totalSellBox || 0}`);
         if (document.getElementById('pdfColPurchaseCotton').checked) row.push(`${item.purchaseCotton || 0}`);
         if (document.getElementById('pdfColPurchaseBox').checked) row.push(`${item.boxPrice || 0}`);
         if (document.getElementById('pdfColSellCotton').checked) row.push(`${item.sellCotton || 0}`);
-        if (document.getElementById('pdfColDateTime').checked) row.push(new Date(item.updatedAt || item.createdAt).toLocaleDateString());
+        if (document.getElementById('pdfColMobile').checked) row.push(`${item.mobile || '-'}`);
+        if (document.getElementById('pdfColDateTime').checked) row.push(formatDateTime12Hr(item.updatedAt || item.createdAt));
         if (document.getElementById('pdfColAdmin').checked) row.push(item.updatedBy || item.createdBy || 'Admin');
         return row;
       });
 
       doc.setFontSize(16);
+      doc.setFont("Amiri", "bold");
       doc.text("Shop Management System - Item Inventory Report", 14, 15);
       doc.setFontSize(10);
       doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
 
+      // Auto Table configured with wider flexible cell width for Item Name (Column 0)
       doc.autoTable({
         head: [headers],
         body: rows,
@@ -825,11 +1066,14 @@
         },
         styles: { 
           font: "Amiri", 
+          fontStyle: 'bold',
           fontSize: 10,
-          halign: 'center'
+          halign: 'center',
+          cellPadding: 3,
+          overflow: 'linebreak'
         },
         columnStyles: {
-          0: { halign: 'left' },
+          0: { halign: 'left', cellWidth: 'auto', minCellWidth: 60 }, // Extra space for Item Name single line fit
           1: { halign: 'left' }
         }
       });
@@ -845,13 +1089,8 @@
     btnViewPdf.addEventListener('click', () => generatePDF(false));
     btnDownloadPdf.addEventListener('click', () => generatePDF(true));
 
-    // Sign Out
-    logoutBtn.addEventListener('click', async () => {
-      await remove(ref(db, 'active_session'));
-      window.location.replace('index.html');
-    });
+    logoutBtn.addEventListener('click', executeLogout);
 
-    // Initialize Page Data
     verifyAuth();
     loadCompaniesDropdown();
     syncItemsData();

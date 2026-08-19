@@ -34,9 +34,8 @@
     font-family: 'Inter', sans-serif;
   }
 
-  /* Hide Body Initially for Security Check */
   body {
-    display: none;
+    display: flex;
     background-color: var(--bg-color);
     color: var(--text-main);
     min-height: 100vh;
@@ -61,7 +60,7 @@
     background-color: var(--secondary-color);
     color: #ffffff;
     height: 100vh;
-    height: 100dvh; /* 👈 Fix: Dynamic viewport height for mobile browsers */
+    height: 100dvh;
     position: fixed;
     top: 0;
     left: 0;
@@ -78,7 +77,7 @@
 
   .sidebar-brand {
     height: var(--header-height);
-    min-height: var(--header-height); /* 👈 Fix: Maintains constant header height */
+    min-height: var(--header-height);
     display: flex;
     align-items: center;
     padding: 0 20px;
@@ -101,7 +100,7 @@
     list-style: none;
     padding: 20px 0;
     flex: 1;
-    overflow-y: auto; /* Fix: Makes navigation scrollable */
+    overflow-y: auto;
   }
 
   .nav-item {
@@ -142,7 +141,7 @@
   .sidebar-footer {
     padding: 15px 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0; /* 👈 Fix: Prevents logout button from squishing */
+    flex-shrink: 0;
     background-color: var(--secondary-color);
   }
 
@@ -565,7 +564,7 @@
       <!-- Recent Activity Section (LIFO Preview) -->
       <div class="activity-section">
         <div class="section-header">
-          <h2 data-en="Recent Activity (Last 5)" data-ur="حالیہ سرگرمی (پچھلے 10 دن)">Recent Activity (Last 10 Days)</h2>
+          <h2 data-en="Recent Activity (Today)" data-ur="حالیہ سرگرمی (آج)">Recent Activity (Today)</h2>
           <a href="recent_activity.html" class="view-all-link" data-en="View All" data-ur="سب دیکھیں">View All</a>
         </div>
         <ul class="activity-list" id="activityPreviewList">
@@ -581,6 +580,12 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, get, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // Instant Local Session Verification
+  const cachedSession = JSON.parse(localStorage.getItem('sms_user_session'));
+  if (!cachedSession) {
+    window.location.replace('index.html');
+  }
 
   // Firebase Configuration
   const firebaseConfig = {
@@ -611,6 +616,14 @@
   const navAdminName = document.getElementById('navAdminName');
   const userAvatar = document.getElementById('userAvatar');
 
+  // Fast UI Initialization from Cache
+  if (cachedSession) {
+    const cachedName = cachedSession.name || cachedSession.username || 'Admin';
+    welcomeText.textContent = `Welcome, ${cachedName}`;
+    navAdminName.textContent = cachedName;
+    userAvatar.textContent = cachedName.charAt(0).toUpperCase();
+  }
+
   // Sidebar Mobile Toggle Controls
   if (hamburgerBtn && sidebar && sidebarOverlay) {
     hamburgerBtn.addEventListener('click', () => {
@@ -624,13 +637,29 @@
     });
   }
 
+  // Date/Time Formatting Helper (dd/mm/yyyy hh:mm AM/PM)
+  function formatDateTime12Hr(isoString) {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    
+    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+  }
+
   // Check Active Session in Firebase & LocalStorage
   async function checkAuthSession() {
     try {
-      // 1. Check LocalStorage Session
       const localSession = JSON.parse(localStorage.getItem('sms_user_session'));
-      
-      // 2. Fetch Active Session from Firebase
       const sessionRef = ref(db, 'active_session');
       const snapshot = await get(sessionRef);
 
@@ -641,18 +670,14 @@
       }
 
       const session = snapshot.val();
-      
-      // Target correct Admin ID
       const targetUserId = session.userId || (localSession ? localSession.userId : 'main_admin');
-      
-      // Fetch Fresh Admin Data
+
       const adminRef = ref(db, `admins/${targetUserId}`);
       const adminSnap = await get(adminRef);
 
       if (adminSnap.exists()) {
         currentActiveAdmin = adminSnap.val();
-        
-        // Check Revoked Access
+
         if (currentActiveAdmin.canLogin === false || currentActiveAdmin.loginAccess === false) {
           alert('Access revoked by Main Admin.');
           await remove(ref(db, 'active_session'));
@@ -661,13 +686,11 @@
           return false;
         }
 
-        // Populate Dynamic User Info
         const adminName = currentActiveAdmin.name || currentActiveAdmin.username || 'Admin';
         welcomeText.textContent = `Welcome, ${adminName}`;
         navAdminName.textContent = adminName;
         userAvatar.textContent = adminName.charAt(0).toUpperCase();
 
-        // Keep local storage in sync with DB
         if (localSession) {
           localSession.name = adminName;
           localSession.username = currentActiveAdmin.username;
@@ -705,25 +728,30 @@
       btnUr.classList.remove('active');
     }
 
-    // Update Translatable Elements
     document.querySelectorAll('[data-en]').forEach(el => {
       const translation = el.getAttribute(`data-${lang}`);
       if (translation) el.textContent = translation;
     });
 
-    // Welcome Text Translation
-    if (currentActiveAdmin) {
-      const adminName = currentActiveAdmin.name || currentActiveAdmin.username || 'Admin';
-      welcomeText.textContent = lang === 'ur' ? `خوش آمدید، ${adminName}` : `Welcome, ${adminName}`;
-    }
+    const activeName = (currentActiveAdmin && (currentActiveAdmin.name || currentActiveAdmin.username)) || (cachedSession && cachedSession.name) || 'Admin';
+    welcomeText.textContent = lang === 'ur' ? `خوش آمدید، ${activeName}` : `Welcome, ${activeName}`;
   }
 
   // Real-Time Sync Dashboard Statistics
   function syncDashboardStats() {
-    // 1. Total Items
+    const isItemsHidden = localStorage.getItem('sms_items_hidden') === 'true';
+    const isAdminsHidden = localStorage.getItem('sms_admins_hidden') === 'true';
+
+    // 1. Total Items (Sync with hidden state)
     onValue(ref(db, 'items'), (snapshot) => {
       const el = document.getElementById('statTotalItems');
-      if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+      if (el) {
+        if (isItemsHidden) {
+          el.textContent = '0';
+        } else {
+          el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+        }
+      }
     });
 
     // 2. Total Companies
@@ -732,21 +760,34 @@
       if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
     });
 
-    // 3. Active Admins
+    // 3. Active Admins (Filter out hidden admins dynamically)
     onValue(ref(db, 'admins'), (snapshot) => {
       const el = document.getElementById('statTotalAdmins');
-      if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+      if (el) {
+        if (isAdminsHidden || !snapshot.exists()) {
+          el.textContent = '0';
+        } else {
+          const adminsData = snapshot.val();
+          let activeCount = 0;
+          Object.keys(adminsData).forEach(key => {
+            if (!adminsData[key].isHidden) {
+              activeCount++;
+            }
+          });
+          el.textContent = activeCount;
+        }
+      }
     });
 
-    // 4. Recent Activity
+    // 4. Recent Activity (Same Day Filter & Hidden Items Sync)
     onValue(ref(db, 'recent_activities'), (snapshot) => {
       const activityList = document.getElementById('activityPreviewList');
       if (!activityList) return;
-      
+
       activityList.innerHTML = '';
 
-      if (!snapshot.exists()) {
-        activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity recorded yet.</li>`;
+      if (isItemsHidden || !snapshot.exists()) {
+        activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity recorded today.</li>`;
         return;
       }
 
@@ -755,20 +796,18 @@
         activities.push(childSnap.val());
       });
 
-      const tenDaysAgo = new Date();
-      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+      const todayStr = new Date().toDateString();
 
-      const filtered = activities
-        .filter(act => act.timestamp && new Date(act.timestamp) >= tenDaysAgo)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .slice(0, 5);
+      const sameDayActivities = activities
+        .filter(act => act.timestamp && new Date(act.timestamp).toDateString() === todayStr)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-      if (filtered.length === 0) {
-        activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity in the last 10 days.</li>`;
+      if (sameDayActivities.length === 0) {
+        activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity recorded today.</li>`;
         return;
       }
 
-      filtered.forEach(act => {
+      sameDayActivities.forEach(act => {
         let badgeClass = 'add';
         let iconClass = 'fa-plus';
         if (act.actionType === 'EDIT') { badgeClass = 'edit'; iconClass = 'fa-pen'; }
@@ -781,7 +820,7 @@
             <div class="activity-badge ${badgeClass}"><i class="fa-solid ${iconClass}"></i></div>
             <div class="activity-text">
               <p>${act.description || 'Action performed'}</p>
-              <span>By ${act.adminName || 'Admin'} &bull; ${act.timestamp ? new Date(act.timestamp).toLocaleString() : ''}</span>
+              <span>By ${act.adminName || 'Admin'} &bull; ${formatDateTime12Hr(act.timestamp)}</span>
             </div>
           </div>
         `;
@@ -789,6 +828,27 @@
       });
     });
   }
+
+  // 5 Minutes Auto Logout System
+  let inactivityTimer;
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(async () => {
+      try {
+        await remove(ref(db, 'active_session'));
+      } catch (err) {
+        console.warn("Auto logout session clear failed:", err);
+      } finally {
+        localStorage.clear();
+        window.location.replace('index.html');
+      }
+    }, 5 * 60 * 1000); // 5 minutes timer
+  }
+
+  window.addEventListener('mousemove', resetInactivityTimer);
+  window.addEventListener('keypress', resetInactivityTimer);
+  window.addEventListener('click', resetInactivityTimer);
+  window.addEventListener('scroll', resetInactivityTimer);
 
   // Sign Out Action
   if (logoutBtn) {
@@ -804,16 +864,10 @@
     });
   }
 
-  // Run Initialization
-  async function initDashboard() {
-    const isAuthenticated = await checkAuthSession();
-    if (isAuthenticated) {
-      document.body.style.display = 'flex';
-      syncDashboardStats();
-    }
-  }
-
-  initDashboard();
+  // Execution Flow
+  syncDashboardStats();
+  resetInactivityTimer();
+  checkAuthSession();
 </script>
 </body>
 </html>

@@ -185,7 +185,8 @@
       <li class="nav-item"><a href="company.html" class="nav-link"><i class="fa-solid fa-building"></i><span data-i18n="navCompany">Company</span></a></li>
       <li class="nav-item"><a href="admins.html" class="nav-link active"><i class="fa-solid fa-users-gear"></i><span data-i18n="navAdmins">Admins</span></a></li>
       <li class="nav-item"><a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear"></i><span data-i18n="navProfile">Profile</span></a></li>
-      <li class="nav-item"><a href="recent_activity.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i><span data-i18n="navActivity">Recent Activity</span></a></li>
+      <!-- Recent Activity: Main Admin Only -->
+      <li class="nav-item" id="navActivityItem" style="display: none;"><a href="recent_activity.html" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i><span data-i18n="navActivity">Recent Activity</span></a></li>
     </ul>
     <div class="sidebar-footer">
       <button class="btn-logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span data-i18n="btnLogout">Sign Out</span></button>
@@ -194,20 +195,22 @@
 
   <!-- Main Body Wrapper -->
   <div class="main-wrapper">
-    <header class="top-header">
+    <!-- Header styled with exact Blue Theme matching Add Admin button -->
+    <header class="top-header" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); backdrop-filter: blur(10px); color: #fff; padding: 12px 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
       <div class="header-left">
-        <button class="hamburger-btn" id="hamburgerBtn"><i class="fa-solid fa-bars"></i></button>
-        <div class="welcome-text" id="welcomeAdmin">Welcome, Admin</div>
+        <button class="hamburger-btn" id="hamburgerBtn" style="color: #fff;"><i class="fa-solid fa-bars"></i></button>
+        <div class="welcome-text" id="welcomeAdmin" style="color: #ffffff; font-weight: 600;">Welcome, Admin</div>
       </div>
-      <button class="lang-toggle-btn" id="langToggleBtn"><i class="fa-solid fa-globe"></i> <span id="langText">Urdu</span></button>
+      <button class="lang-toggle-btn" id="langToggleBtn" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: #fff;"><i class="fa-solid fa-globe"></i> <span id="langText">Urdu</span></button>
     </header>
 
     <main class="content-area">
       <div class="page-title-bar">
-        <h1 data-i18n="titleAdmins">Admins Directory</h1>
+        <!-- Title clickable (Triple Click to Lock/Unlock entire directory) -->
+        <h1 id="directoryTitle" style="cursor: pointer; user-select: none;" data-i18n="titleAdmins">Admins Directory</h1>
         
         <div class="header-actions">
-          <!-- Table/Card Toggle Buttons -->
+          <!-- Table/Card View Toggles -->
           <div class="view-toggle">
             <button class="view-btn active" id="tableViewBtn" title="Table View"><i class="fa-solid fa-table-list"></i></button>
             <button class="view-btn" id="cardViewBtn" title="Card View"><i class="fa-solid fa-grip"></i></button>
@@ -246,6 +249,13 @@
           <label>Confirm Password *</label>
           <input type="text" class="form-control" id="adminConfirmPassword" required placeholder="••••••••">
         </div>
+        
+        <!-- Custom Security Password for Unhiding Credentials -->
+        <div class="form-group" id="showHidePasswordGroup">
+          <label>Eye View Security Password (To Unhide Info)</label>
+          <input type="text" class="form-control" id="adminShowHidePassword" placeholder="Set password for unhiding credentials">
+        </div>
+
         <div class="form-group">
           <label>Email (Optional)</label>
           <input type="email" class="form-control" id="adminEmail" placeholder="admin@example.com">
@@ -276,7 +286,6 @@
           <label><input type="checkbox" id="permEditCompany" checked> Edit Company</label>
           <label><input type="checkbox" id="permDeleteCompany" checked> Delete Company</label>
           
-          <!-- Manage Admins Cascading Options -->
           <div style="border-top:1px dashed #cbd5e1; padding-top:8px; margin-top:4px;">
             <label style="font-weight:600;"><input type="checkbox" id="permManageAdmins"> Manage Admins (Full Control)</label>
             
@@ -301,6 +310,28 @@
     </div>
   </div>
 
+  <!-- SECURITY PASSWORD INPUT PROMPT MODAL -->
+  <div class="modal-overlay" id="secPassModal" style="z-index: 9999;">
+    <div class="modal-card" style="max-width: 380px;">
+      <div class="modal-header">
+        <h3 id="secPassModalTitle">Security Authentication</h3>
+        <i class="fa-solid fa-xmark" id="closeSecPassModalBtn" style="cursor:pointer; font-size:1.2rem;"></i>
+      </div>
+      <div class="modal-body" style="padding-top:10px;">
+        <p id="secPassModalDesc" style="font-size: 0.95rem; color: #475569; margin-bottom: 12px;"></p>
+        <div class="form-group">
+          <label>Enter Security Password:</label>
+          <input type="password" class="form-control" id="secPassInput" placeholder="••••••••" style="margin-top: 5px;">
+        </div>
+        <div id="secPassError" style="color: #ef4444; font-size: 0.85rem; display: none; margin-top: 6px;"></div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+        <button type="button" class="btn btn-secondary" id="cancelSecPassBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmSecPassBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <!-- FIREBASE & CORE SCRIPT -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -322,9 +353,39 @@
     let activeUser = null;
     let rawAdminsData = [];
     let currentLang = 'en';
-    let currentViewMode = 'table'; // 'table' or 'card'
+    let currentViewMode = 'table'; 
 
-    // Translations Dict
+    // Persistent Lock State for Directory
+    let isDirectoryLocked = localStorage.getItem('sms_directory_locked') === 'true';
+
+    // Persistent Visibility States (Preserved even after Refresh or Login)
+    window.visibilityStates = JSON.parse(localStorage.getItem('sms_visibility_states') || '{}');
+
+    function saveVisibilityStates() {
+      localStorage.setItem('sms_visibility_states', JSON.stringify(window.visibilityStates));
+    }
+
+    // 5-Minute Inactivity Auto Logout
+    let inactivityTimer = null;
+    const FIVE_MINUTES = 5 * 60 * 1000;
+
+    function resetInactivityTimer() {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(performLogout, FIVE_MINUTES);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) resetInactivityTimer();
+      else if (inactivityTimer) clearTimeout(inactivityTimer);
+    });
+
+    async function performLogout() {
+      localStorage.removeItem('sms_user_session');
+      try { await remove(ref(db, 'active_session')); } catch(e) {}
+      window.location.replace('index.html');
+    }
+
+    // Translations
     const i18n = {
       en: {
         navDashboard: "Dashboard", navItems: "Items", navCompany: "Company", navAdmins: "Admins",
@@ -344,6 +405,8 @@
     const welcomeAdmin = document.getElementById('welcomeAdmin');
     const langToggleBtn = document.getElementById('langToggleBtn');
     const langText = document.getElementById('langText');
+    const navActivityItem = document.getElementById('navActivityItem');
+    const directoryTitle = document.getElementById('directoryTitle');
 
     const adminsContainer = document.getElementById('adminsContainer');
     const openAddAdminBtn = document.getElementById('openAddAdminBtn');
@@ -355,7 +418,6 @@
     const authAll = document.getElementById('authAll');
     const authSpecific = document.getElementById('authSpecific');
     const permissionBox = document.getElementById('permissionBox');
-
     const permManageAdmins = document.getElementById('permManageAdmins');
     const permSeeAdmin = document.getElementById('permSeeAdmin');
     const specificAdminCredsBox = document.getElementById('specificAdminCredsBox');
@@ -363,7 +425,56 @@
     const tableViewBtn = document.getElementById('tableViewBtn');
     const cardViewBtn = document.getElementById('cardViewBtn');
 
-    // View Switcher logic
+    // Security Password Modal UI Elements
+    const secPassModal = document.getElementById('secPassModal');
+    const secPassModalTitle = document.getElementById('secPassModalTitle');
+    const secPassModalDesc = document.getElementById('secPassModalDesc');
+    const secPassInput = document.getElementById('secPassInput');
+    const secPassError = document.getElementById('secPassError');
+    const closeSecPassModalBtn = document.getElementById('closeSecPassModalBtn');
+    const cancelSecPassBtn = document.getElementById('cancelSecPassBtn');
+    const confirmSecPassBtn = document.getElementById('confirmSecPassBtn');
+
+    let currentPassCallback = null;
+    let secAttempts = 0;
+
+    function openPasswordModal(title, desc, correctPassword, onSuccess) {
+      secPassModalTitle.textContent = title;
+      secPassModalDesc.textContent = desc;
+      secPassInput.value = '';
+      secPassError.style.display = 'none';
+      secPassError.textContent = '';
+      secAttempts = 0;
+      secPassModal.classList.add('active');
+      secPassInput.focus();
+
+      currentPassCallback = () => {
+        const entered = secPassInput.value.trim();
+        if (entered === correctPassword.trim()) {
+          secPassModal.classList.remove('active');
+          onSuccess();
+        } else {
+          secAttempts++;
+          if (secAttempts >= 3) {
+            secPassError.textContent = "3 incorrect attempts! Access denied.";
+            secPassError.style.display = 'block';
+            setTimeout(() => { secPassModal.classList.remove('active'); }, 1200);
+          } else {
+            secPassError.textContent = `Incorrect Security Password! (Attempt ${secAttempts}/3)`;
+            secPassError.style.display = 'block';
+            secPassInput.value = '';
+            secPassInput.focus();
+          }
+        }
+      };
+    }
+
+    closeSecPassModalBtn.addEventListener('click', () => secPassModal.classList.remove('active'));
+    cancelSecPassBtn.addEventListener('click', () => secPassModal.classList.remove('active'));
+    confirmSecPassBtn.addEventListener('click', () => { if (currentPassCallback) currentPassCallback(); });
+    secPassInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (currentPassCallback) currentPassCallback(); } });
+
+    // View Switching
     tableViewBtn.addEventListener('click', () => {
       currentViewMode = 'table';
       tableViewBtn.classList.add('active');
@@ -378,15 +489,14 @@
       renderAdmins();
     });
 
-    // Sidebar Navigation Toggle
+    // Sidebar Toggles
     hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
     sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
 
-    // Radio Toggle Permissions Display
+    // Permissions Box Logic
     authAll.addEventListener('change', () => permissionBox.style.display = 'none');
     authSpecific.addEventListener('change', () => permissionBox.style.display = 'grid');
 
-    // Manage Admins Checkbox Behavior
     permManageAdmins.addEventListener('change', (e) => {
       if (e.target.checked) {
         permSeeAdmin.checked = true;
@@ -415,7 +525,47 @@
       });
     }
 
-    // Verify Session with Fallback
+    // Triple Click Logic on "Admins Directory" Title
+    let titleClickCount = 0;
+    let titleClickTimer = null;
+
+    directoryTitle.addEventListener('click', () => {
+      titleClickCount++;
+      if (titleClickTimer) clearTimeout(titleClickTimer);
+
+      if (titleClickCount === 3) {
+        titleClickCount = 0;
+        toggleDirectoryLock();
+      } else {
+        titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 800);
+      }
+    });
+
+    // Verify Password to Lock/Unlock Entire Directory
+    async function toggleDirectoryLock() {
+      const securityPass = activeUser?.showHidePassword || activeUser?.password;
+
+      if (!securityPass) {
+        alert("Security Password is not set for your account.");
+        return;
+      }
+
+      const targetState = isDirectoryLocked ? "Unlock" : "Lock";
+
+      openPasswordModal(
+        `${targetState} Directory`,
+        `Please enter your Security Password to ${targetState.toLowerCase()} the Admin Directory.`,
+        securityPass,
+        () => {
+          isDirectoryLocked = !isDirectoryLocked;
+          localStorage.setItem('sms_directory_locked', isDirectoryLocked);
+          alert(`Admin Directory is now ${isDirectoryLocked ? 'LOCKED' : 'UNLOCKED'}.`);
+          renderAdmins();
+        }
+      );
+    }
+
+    // Verify Session
     async function verifyAuth() {
       try {
         const localSession = localStorage.getItem('sms_user_session');
@@ -435,47 +585,52 @@
           welcomeAdmin.textContent = `Welcome, ${activeUser.name}`;
         }
 
-        // Restrict "Add Admin" button if sub-admin has no manageAdmins permission
-        const canManage = activeUser && (activeUser.isMainAdmin || activeUser.permissions?.manageAdmins);
-        if (!canManage) {
-          openAddAdminBtn.style.display = 'none';
-        } else {
-          openAddAdminBtn.style.display = 'inline-flex';
-        }
+        navActivityItem.style.display = (activeUser && activeUser.isMainAdmin) ? 'block' : 'none';
 
       } catch (err) { console.error("Session Auth error:", err); }
     }
 
-    // Read Admins Data Realtime
+    // Sync Firebase Admins
     function syncAdmins() {
       onValue(ref(db, 'admins'), (snap) => {
         rawAdminsData = [];
         if (snap.exists()) {
           const data = snap.val();
-          for (let key in data) {
-            rawAdminsData.push({ key, ...data[key] });
-          }
+          for (let key in data) { rawAdminsData.push({ key, ...data[key] }); }
         }
         renderAdmins();
       });
     }
 
-    // Helper to determine if a row represents currently logged-in admin
     function checkIsSelf(adm) {
       if (!activeUser) return false;
-      if (activeUser.key && activeUser.key === adm.key) return true;
-      if (activeUser.userId && activeUser.userId === adm.key) return true;
-      if (activeUser.username && activeUser.username === adm.username) return true;
-      return false;
+      return (activeUser.key === adm.key || activeUser.userId === adm.key || activeUser.username === adm.username);
     }
 
     // Main Render Function
     function renderAdmins() {
-      if (rawAdminsData.length === 0) {
-        adminsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">No Admins Found.</div>`;
+      // 1. If Directory is Locked by Triple Click
+      if (isDirectoryLocked) {
+        openAddAdminBtn.disabled = true;
+        openAddAdminBtn.style.opacity = '0.5';
+        openAddAdminBtn.style.cursor = 'not-allowed';
+        adminsContainer.innerHTML = `<div style="text-align:center; padding:50px; font-size:1.2rem; font-weight:600; color:var(--text-muted);">No Admins Yet</div>`;
         return;
       }
 
+      // Restore Add Admin Button State
+      const canManage = activeUser && (activeUser.isMainAdmin || activeUser.permissions?.manageAdmins);
+      openAddAdminBtn.disabled = !canManage;
+      openAddAdminBtn.style.opacity = canManage ? '1' : '0.5';
+      openAddAdminBtn.style.cursor = canManage ? 'pointer' : 'not-allowed';
+
+      // 2. If No Data
+      if (rawAdminsData.length === 0) {
+        adminsContainer.innerHTML = `<div style="text-align:center; padding:50px; font-size:1.2rem; font-weight:600; color:var(--text-muted);">No Admins Yet</div>`;
+        return;
+      }
+
+      // Render Table or Card Mode
       if (currentViewMode === 'table') {
         renderTableMode();
       } else {
@@ -483,7 +638,7 @@
       }
     }
 
-    // Render Table View
+    // Render Table Mode
     function renderTableMode() {
       let html = `
         <div class="admin-table-container">
@@ -508,11 +663,6 @@
         const canManageOthers = isMainAdminUser || activeUser?.permissions?.manageAdmins;
         const canSeeDetails = isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.seeAdmin;
 
-        // Privacy Permissions for other admins
-        const canSeeUser = isSelf || isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.viewUsername;
-        const canSeePass = isSelf || isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.viewPassword;
-        const canSeeMail = isSelf || isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.viewEmail;
-
         const accessBadge = adm.loginAccess !== false ? '<span class="badge badge-active">Allowed</span>' : '<span class="badge badge-disabled">Disabled</span>';
         
         let roleBadge = '-';
@@ -522,29 +672,32 @@
 
         const canEdit = canManageOthers || isSelf;
 
+        const userValId = `user_val_${adm.key}`;
+        const passValId = `pass_val_${adm.key}`;
+
+        // Default state is HIDDEN ('••••••••')
+        const isUserRevealed = window.visibilityStates[userValId] === 'visible';
+        const isPassRevealed = window.visibilityStates[passValId] === 'visible';
+
         html += `
           <tr>
             <td><strong>${adm.name}</strong> ${isSelf ? '<small style="color:var(--primary-color);">(You)</small>' : ''}</td>
             
             <td>
-              ${(canSeeDetails || isSelf) && canSeeUser ? `
-                <span class="secret-field">
-                  <span id="user_val_${adm.key}">••••••••</span>
-                  <i class="fa-solid fa-eye" onclick="window.toggleVisibility('user_val_${adm.key}', '${adm.username}')"></i>
-                </span>
-              ` : '••••••••'}
+              <span class="secret-field">
+                <span id="${userValId}">${isUserRevealed ? adm.username : '••••••••'}</span>
+                <i class="fa-solid ${isUserRevealed ? 'fa-eye' : 'fa-eye-slash'}" onclick="window.toggleVisibility('${userValId}', '${adm.username}', '${adm.key}')" style="cursor:pointer; margin-left:6px;"></i>
+              </span>
             </td>
 
             <td>
-              ${(canSeeDetails || isSelf) && canSeePass ? `
-                <span class="secret-field">
-                  <span id="pass_val_${adm.key}">••••••••</span>
-                  <i class="fa-solid fa-eye" onclick="window.toggleVisibility('pass_val_${adm.key}', '${adm.password}')"></i>
-                </span>
-              ` : '••••••••'}
+              <span class="secret-field">
+                <span id="${passValId}">${isPassRevealed ? adm.password : '••••••••'}</span>
+                <i class="fa-solid ${isPassRevealed ? 'fa-eye' : 'fa-eye-slash'}" onclick="window.toggleVisibility('${passValId}', '${adm.password}', '${adm.key}')" style="cursor:pointer; margin-left:6px;"></i>
+              </span>
             </td>
 
-            <td>${(canSeeDetails || isSelf) && canSeeMail ? (adm.email || 'N/A') : '••••••••'}</td>
+            <td>${(canSeeDetails || isSelf) ? (adm.email || 'N/A') : '••••••••'}</td>
             <td>${(canSeeDetails || isSelf) ? accessBadge : '-'}</td>
             <td>${roleBadge}</td>
             
@@ -564,7 +717,7 @@
       adminsContainer.innerHTML = html;
     }
 
-    // Render Card View
+    // Render Card Mode
     function renderCardMode() {
       let html = `<div class="admin-grid-container">`;
 
@@ -574,10 +727,6 @@
         const canManageOthers = isMainAdminUser || activeUser?.permissions?.manageAdmins;
         const canSeeDetails = isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.seeAdmin;
 
-        const canSeeUser = isSelf || isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.viewUsername;
-        const canSeePass = isSelf || isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.viewPassword;
-        const canSeeMail = isSelf || isMainAdminUser || activeUser?.permissions?.manageAdmins || activeUser?.permissions?.viewEmail;
-
         const accessBadge = adm.loginAccess !== false ? '<span class="badge badge-active">Allowed</span>' : '<span class="badge badge-disabled">Disabled</span>';
         
         let roleBadge = '';
@@ -586,6 +735,13 @@
         }
 
         const canEdit = canManageOthers || isSelf;
+
+        const cardUserValId = `card_user_val_${adm.key}`;
+        const cardPassValId = `card_pass_val_${adm.key}`;
+
+        // Default state is HIDDEN ('••••••••')
+        const isUserRevealed = window.visibilityStates[cardUserValId] === 'visible';
+        const isPassRevealed = window.visibilityStates[cardPassValId] === 'visible';
 
         html += `
           <div class="admin-card">
@@ -598,24 +754,20 @@
             
             <div class="card-info">
               <div><strong>Username:</strong> 
-                ${(canSeeDetails || isSelf) && canSeeUser ? `
-                  <span class="secret-field">
-                    <span id="card_user_val_${adm.key}">••••••••</span>
-                    <i class="fa-solid fa-eye" onclick="window.toggleVisibility('card_user_val_${adm.key}', '${adm.username}')"></i>
-                  </span>
-                ` : '••••••••'}
+                <span class="secret-field">
+                  <span id="${cardUserValId}">${isUserRevealed ? adm.username : '••••••••'}</span>
+                  <i class="fa-solid ${isUserRevealed ? 'fa-eye' : 'fa-eye-slash'}" onclick="window.toggleVisibility('${cardUserValId}', '${adm.username}', '${adm.key}')" style="cursor:pointer; margin-left:6px;"></i>
+                </span>
               </div>
 
               <div><strong>Password:</strong> 
-                ${(canSeeDetails || isSelf) && canSeePass ? `
-                  <span class="secret-field">
-                    <span id="card_pass_val_${adm.key}">••••••••</span>
-                    <i class="fa-solid fa-eye" onclick="window.toggleVisibility('card_pass_val_${adm.key}', '${adm.password}')"></i>
-                  </span>
-                ` : '••••••••'}
+                <span class="secret-field">
+                  <span id="${cardPassValId}">${isPassRevealed ? adm.password : '••••••••'}</span>
+                  <i class="fa-solid ${isPassRevealed ? 'fa-eye' : 'fa-eye-slash'}" onclick="window.toggleVisibility('${cardPassValId}', '${adm.password}', '${adm.key}')" style="cursor:pointer; margin-left:6px;"></i>
+                </span>
               </div>
 
-              <div><strong>Email:</strong> ${(canSeeDetails || isSelf) && canSeeMail ? (adm.email || 'N/A') : '••••••••'}</div>
+              <div><strong>Email:</strong> ${(canSeeDetails || isSelf) ? (adm.email || 'N/A') : '••••••••'}</div>
             </div>
 
             <div class="card-actions">
@@ -634,26 +786,53 @@
       adminsContainer.innerHTML = html;
     }
 
-    // Toggle Hidden Password / Username
-    window.toggleVisibility = (elemId, realValue) => {
+    // Toggle Eye Visibility with Custom Password Box Input Modal (Required for BOTH Show & Hide)
+    window.toggleVisibility = (elemId, realValue, adminKey) => {
       const elem = document.getElementById(elemId);
-      if (elem) {
-        if (elem.textContent === '••••••••') {
-          elem.textContent = realValue;
-        } else {
-          elem.textContent = '••••••••';
-        }
+      if (!elem) return;
+
+      const currentState = window.visibilityStates[elemId] || 'hidden';
+      const adm = rawAdminsData.find(a => a.key === adminKey);
+      const eyePass = adm ? adm.showHidePassword : null;
+
+      if (!eyePass || eyePass.trim() === "") {
+        alert("Security Password for unhiding/hiding credentials is not set for this account.");
+        return;
       }
+
+      const actionTitle = currentState === 'visible' ? 'Hide Credentials' : 'Show Credentials';
+      const actionDesc = currentState === 'visible' 
+        ? 'Please enter Security Password to HIDE these credentials.' 
+        : 'Please enter Security Password to SHOW these credentials.';
+
+      openPasswordModal(
+        actionTitle,
+        actionDesc,
+        eyePass,
+        () => {
+          if (currentState === 'visible') {
+            window.visibilityStates[elemId] = 'hidden';
+          } else {
+            window.visibilityStates[elemId] = 'visible';
+          }
+          saveVisibilityStates();
+          renderAdmins();
+        }
+      );
     };
 
     // Modal Control
     openAddAdminBtn.addEventListener('click', () => {
+      if (isDirectoryLocked) return;
       adminForm.reset();
       document.getElementById('adminKey').value = '';
       document.getElementById('modalTitle').textContent = 'Add Sub-Admin';
       
       document.getElementById('loginAccessGroup').style.display = 'flex';
       document.getElementById('authorityTypeGroup').style.display = 'block';
+      document.getElementById('adminLoginAccess').disabled = false;
+      document.getElementById('authAll').disabled = false;
+      document.getElementById('authSpecific').disabled = false;
 
       authAll.checked = true;
       permissionBox.style.display = 'none';
@@ -664,7 +843,7 @@
     closeModalBtn.addEventListener('click', () => adminModal.classList.remove('active'));
     cancelModalBtn.addEventListener('click', () => adminModal.classList.remove('active'));
 
-    // Save Admin Form Handler
+    // Save Admin
     adminForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const key = document.getElementById('adminKey').value;
@@ -672,6 +851,7 @@
       const username = document.getElementById('adminUsername').value.trim();
       const password = document.getElementById('adminPassword').value.trim();
       const confirmPassword = document.getElementById('adminConfirmPassword').value.trim();
+      const showHidePassword = document.getElementById('adminShowHidePassword').value.trim();
       const email = document.getElementById('adminEmail').value.trim();
       const loginAccess = document.getElementById('adminLoginAccess').checked;
       const authority = authAll.checked ? 'all' : 'specific';
@@ -698,32 +878,26 @@
 
       try {
         if (key) {
-          // Update existing admin
           const existingAdmin = rawAdminsData.find(a => a.key === key);
           const isSelf = checkIsSelf(existingAdmin || { key });
+          const isTargetMainAdmin = existingAdmin && existingAdmin.isMainAdmin;
           const canManageOthers = activeUser && (activeUser.isMainAdmin || activeUser.permissions?.manageAdmins);
 
-          let payload = { name, username, password, email };
+          let payload = { name, username, password, showHidePassword, email };
 
-          if (canManageOthers) {
+          if (canManageOthers && !isTargetMainAdmin) {
             payload.loginAccess = loginAccess;
             payload.authority = authority;
             payload.permissions = permissions;
+          } else if (isTargetMainAdmin) {
+            payload.loginAccess = true;
+            payload.authority = 'all';
           }
 
-          // Overwrite and permanent update in Database Node
           await update(ref(db, `admins/${key}`), payload);
           
-          // Immediate Session & Header update if current user updated their own profile
           if (isSelf) {
-            const updatedSession = { 
-              ...activeUser, 
-              name, 
-              username, 
-              password, 
-              email, 
-              key: key 
-            };
+            const updatedSession = { ...activeUser, name, username, password, showHidePassword, email, key };
             localStorage.setItem('sms_user_session', JSON.stringify(updatedSession));
             await set(ref(db, 'active_session'), updatedSession);
             activeUser = updatedSession;
@@ -732,9 +906,8 @@
 
           await logActivity('EDIT', `Updated info for admin "${name}".`);
         } else {
-          // Add New Sub-Admin
           const payload = { 
-            name, username, password, email, loginAccess, authority, permissions, 
+            name, username, password, showHidePassword, email, loginAccess, authority, permissions, 
             isMainAdmin: false, createdAt: new Date().toISOString() 
           };
           await push(ref(db, 'admins'), payload);
@@ -742,10 +915,10 @@
         }
 
         adminModal.classList.remove('active');
-      } catch (err) { alert('Save operation failed: ' + err.message); }
+      } catch (err) { alert('Save failed: ' + err.message); }
     });
 
-    // Populate Modal for Editing
+    // Populate Modal for Edit
     window.editAdmin = (key) => {
       const adm = rawAdminsData.find(a => a.key === key);
       if (!adm) return;
@@ -758,19 +931,31 @@
       document.getElementById('adminUsername').value = adm.username;
       document.getElementById('adminPassword').value = adm.password;
       document.getElementById('adminConfirmPassword').value = adm.password;
+      document.getElementById('adminShowHidePassword').value = adm.showHidePassword || '';
       document.getElementById('adminEmail').value = adm.email || '';
       document.getElementById('adminLoginAccess').checked = adm.loginAccess !== false;
 
-      // Self-edit restriction for permissions UI if not allowed to manage
-      if (!canManageOthers && isSelf) {
+      if (adm.isMainAdmin) {
+        document.getElementById('loginAccessGroup').style.display = 'flex';
+        document.getElementById('authorityTypeGroup').style.display = 'block';
+        document.getElementById('adminLoginAccess').checked = true;
+        document.getElementById('adminLoginAccess').disabled = true;
+        authAll.checked = true;
+        document.getElementById('authAll').disabled = true;
+        document.getElementById('authSpecific').disabled = true;
+        permissionBox.style.display = 'none';
+      } else if (!canManageOthers && isSelf) {
         document.getElementById('loginAccessGroup').style.display = 'none';
         document.getElementById('authorityTypeGroup').style.display = 'none';
         permissionBox.style.display = 'none';
       } else {
         document.getElementById('loginAccessGroup').style.display = 'flex';
         document.getElementById('authorityTypeGroup').style.display = 'block';
+        document.getElementById('adminLoginAccess').disabled = false;
+        document.getElementById('authAll').disabled = false;
+        document.getElementById('authSpecific').disabled = false;
 
-        if (adm.authority === 'specific' && !adm.isMainAdmin) {
+        if (adm.authority === 'specific') {
           authSpecific.checked = true;
           permissionBox.style.display = 'grid';
           document.getElementById('permAddItem').checked = adm.permissions?.addItem || false;
@@ -808,7 +993,6 @@
       }
     };
 
-    // Log Activity Function
     async function logActivity(actionType, description) {
       await push(ref(db, 'recent_activities'), {
         actionType,
@@ -818,16 +1002,8 @@
       });
     }
 
-    // Sign Out Action
-    logoutBtn.addEventListener('click', async () => {
-      localStorage.removeItem('sms_user_session');
-      try {
-        await remove(ref(db, 'active_session'));
-      } catch(e) {}
-      window.location.replace('index.html');
-    });
+    logoutBtn.addEventListener('click', performLogout);
 
-    // Initialize Page
     verifyAuth();
     syncAdmins();
   </script>
