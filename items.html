@@ -291,7 +291,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Item Name *</label>
-            <input type="text" class="form-control" id="itemName" required placeholder="e.g. Cooking Oil 1L">
+            <input type="text" class="form-control" id="itemName" required placeholder="e.g. Sooper Biscuit">
           </div>
           <div class="form-group">
             <label>Company (Optional)</label>
@@ -300,20 +300,20 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Purchase Price / Cotton *</label>
-            <input type="number" step="0.01" class="form-control" id="purchaseCotton" required placeholder="0.00">
+            <label>Purchase Price / Cotton </label>
+            <input type="number" step="0.01" class="form-control" id="purchaseCotton" placeholder="0.00">
           </div>
           <div class="form-group">
-            <label>Cotton Pieces (Qty) *</label>
-            <input type="number" class="form-control" id="cottonPieces" required placeholder="e.g. 12">
+            <label>Cotton Pieces (Qty) </label>
+            <input type="number" class="form-control" id="cottonPieces"  placeholder="e.g. 12">
           </div>
           <div class="form-group">
-            <label>Box Price (Auto Divided)</label>
+            <label>Pur. Box Price (Auto Divided)</label>
             <input type="number" step="0.01" class="form-control" id="boxPrice" readonly placeholder="Calculated automatically">
           </div>
           <div class="form-group">
-            <label>Price per box *</label>
-            <input type="number" step="0.01" class="form-control" id="sellBox" required placeholder="0.00">
+            <label>Price per box </label>
+            <input type="number" step="0.01" class="form-control" id="sellBox"  placeholder="0.00">
           </div>
           <div class="form-group">
             <label>Total sell price/box</label>
@@ -349,7 +349,7 @@
         </p>
         <strong>Example Row:</strong>
         <p style="margin:6px 0 0 0; font-family:monospace; font-size:0.8rem; background:#fff; padding:6px; border:1px solid #e2e8f0; border-radius:4px;">
-          Cooking Oil 1L, Dalda, 1200, 12, 115, 120
+          Sooper Biscuit, Peek Freans, 1200, 12, 115, 120
         </p>
       </div>
 
@@ -374,10 +374,10 @@
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
         <label><input type="checkbox" checked disabled> Item Name & Company (Default)</label>
         <label><input type="checkbox" checked disabled> Price per box (Default)</label>
-        <label><input type="checkbox" id="pdfColTotalSellBox" checked> Total sell price/box</label>
+        <label><input type="checkbox" id="pdfColTotalSellBox"> Total sell price/box</label>
         <label><input type="checkbox" id="pdfColPurchaseCotton"> Purchase Price / Cotton</label>
         <label><input type="checkbox" id="pdfColPurchaseBox"> Purchase Price / Box</label>
-        <label><input type="checkbox" id="pdfColSellCotton" checked> Sell Price / Cotton</label>
+        <label><input type="checkbox" id="pdfColSellCotton"> Sell Price / Cotton</label>
         <label><input type="checkbox" id="pdfColDateTime"> Date and Time</label>
         <label><input type="checkbox" id="pdfColAdmin"> Added/Edited By Admin Name</label>
       </div>
@@ -554,7 +554,7 @@
                   <th>Item Name</th>
                   <th>Company</th>
                   <th>Pur. Price/Cotton</th>
-                  <th>Box Price</th>
+                  <th>Box Price(pur)</th>
                   <th>Price per box</th>
                   <th>Total sell price/box</th>
                   <th>Sell/Cotton</th>
@@ -597,7 +597,7 @@
               </div>
               <div class="card-body">
                 <p><span>Pur. Cotton:</span> <strong>${item.purchaseCotton || 0}</strong></p>
-                <p><span>Box Price:</span> <strong>${item.boxPrice || 0}</strong></p>
+                <p><span>Box Price(Purchase):</span> <strong>${item.boxPrice || 0}</strong></p>
                 <p><span>Price per box:</span> <strong style="color:var(--primary-color)">${item.sellBox || 0}</strong></p>
                 <p><span>Total sell price/box:</span> <strong>${item.totalSellBox || 0}</strong></p>
                 <p><span>Sell Cotton:</span> <strong>${item.sellCotton || 0}</strong></p>
