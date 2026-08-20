@@ -628,17 +628,17 @@
       if (!isoString) return '';
       const date = new Date(isoString);
       if (isNaN(date.getTime())) return '';
-      
+
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
-      
+
       let hours = date.getHours();
       const minutes = String(date.getMinutes()).padStart(2, '0');
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
       hours = hours ? hours : 12;
-      
+
       return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
     }
 
@@ -662,7 +662,7 @@
 
         if (adminSnap.exists()) {
           currentActiveAdmin = adminSnap.val();
-          
+
           if (currentActiveAdmin.canLogin === false || currentActiveAdmin.loginAccess === false) {
             alert('Access revoked by Main Admin.');
             await remove(ref(db, 'active_session'));
@@ -725,14 +725,15 @@
 
     // Real-Time Sync Dashboard Statistics
     function syncDashboardStats() {
-      // Check secret protection state set from items.html
-      const isHiddenProtectionActive = localStorage.getItem('sms_items_hidden') === 'true';
+      // Check secret protection states
+      const isItemsHidden = localStorage.getItem('sms_items_hidden') === 'true';
+      const isAdminsHidden = localStorage.getItem('sms_admins_hidden') === 'true';
 
       // 1. Total Items (Hidden Sync Check)
       onValue(ref(db, 'items'), (snapshot) => {
         const el = document.getElementById('statTotalItems');
         if (el) {
-          if (isHiddenProtectionActive) {
+          if (isItemsHidden) {
             el.textContent = '0';
           } else {
             el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
@@ -746,20 +747,26 @@
         if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
       });
 
-      // 3. Active Admins
+      // 3. Active Admins (Hidden Sync Check)
       onValue(ref(db, 'admins'), (snapshot) => {
         const el = document.getElementById('statTotalAdmins');
-        if (el) el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+        if (el) {
+          if (isAdminsHidden) {
+            el.textContent = '0';
+          } else {
+            el.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+          }
+        }
       });
 
       // 4. Recent Activity (Same Day Filter & Hidden Sync Check)
       onValue(ref(db, 'recent_activities'), (snapshot) => {
         const activityList = document.getElementById('activityPreviewList');
         if (!activityList) return;
-        
+
         activityList.innerHTML = '';
 
-        if (isHiddenProtectionActive || !snapshot.exists()) {
+        if (isItemsHidden || !snapshot.exists()) {
           activityList.innerHTML = `<li class="activity-item" style="justify-content:center; color:var(--text-muted);">No activity recorded yet.</li>`;
           return;
         }
