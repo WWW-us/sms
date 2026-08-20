@@ -430,6 +430,7 @@
 
     let activeAdmin = null;
     let rawItemsData = [];
+    let isStatusLoaded = false; // Prevents flash of content before checking hide status
     
     let activeViewMode = localStorage.getItem('sms_view_mode') || 'table';
     let isHiddenProtectionActive = localStorage.getItem('sms_items_hidden') === 'true';
@@ -540,10 +541,14 @@
               isHiddenProtectionActive = true;
             } else if (adminSnapHide.exists() && adminSnapHide.val() === true) {
               isHiddenProtectionActive = true;
+            } else if (globalSnap.exists() && globalSnap.val() === false) {
+              isHiddenProtectionActive = false;
             }
             localStorage.setItem('sms_items_hidden', isHiddenProtectionActive);
-            renderItems();
           } catch (e) { console.warn("Failed to fetch hide status from Firebase:", e); }
+          
+          isStatusLoaded = true;
+          renderItems();
         } else { window.location.replace('index.html'); }
       } catch (err) { console.error("Auth check failed:", err); }
     }
@@ -620,13 +625,24 @@
     }
 
     function renderItems() {
+      // Prevent flashing items before auth & hide-status fetch complete
+      if (!isStatusLoaded) {
+        if (isHiddenProtectionActive) {
+          itemsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:1.1rem; font-weight:600;">No items available till now.</div>`;
+          itemsCountBadge.textContent = `Total Items: 0`;
+        } else {
+          itemsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">Loading...</div>`;
+        }
+        return;
+      }
+
       if (isHiddenProtectionActive) {
         itemsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:1.1rem; font-weight:600;">No items available till now.</div>`;
         itemsCountBadge.textContent = `Total Items: 0`;
         return;
       }
 
-     const query = searchInput.value.toLowerCase().trim();
+      const query = searchInput.value.toLowerCase().trim();
       const criteria = searchCriteria.value;
       const selectedDate = searchDateInput.value;
 
@@ -1091,6 +1107,7 @@
 
     logoutBtn.addEventListener('click', executeLogout);
 
+    renderItems(); // Initial render check
     verifyAuth();
     loadCompaniesDropdown();
     syncItemsData();
